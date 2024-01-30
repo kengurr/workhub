@@ -7,6 +7,8 @@ public interface EmployeeService {
     Employee getEmployee(Long employeeId);
 
     void createEmployee(Employee employee);
+    
+    void updateEmployee(Long employeeId, Employee employee);
 
     void deleteEmployee(Long employeeId);
 

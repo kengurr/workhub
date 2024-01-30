@@ -33,6 +33,17 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
+    @Transactional
+    public void updateProject(Long projectId, Project project) {
+        boolean projectExists = projectRepository.existsById(projectId);
+        if(!projectExists) {
+            throw new IllegalStateException("Cannot update project, project doesn't exist");
+        }
+        project.setId(projectId);
+        projectRepository.save(project);
+    }
+
+    @Override
     public void deleteProject(Long projectId) {
         boolean projectExists = projectRepository.existsById(projectId);
         if(!projectExists) {

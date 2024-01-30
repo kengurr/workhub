@@ -8,6 +8,8 @@ public interface ProjectService {
 
     void createProject(Project project);
 
+    void updateProject(Long projectId, Project project);
+
     void deleteProject(Long projectId);
 
     void createProjectForEmployee(Project project, Long employeeId);

@@ -30,6 +30,13 @@ public class EmployeeController {
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
+    @PostMapping(value = "/update/{employeeId}")
+    public ResponseEntity<?> updateEmployee(@RequestBody Employee employee,
+                                            @PathVariable(name = "employeeId") Long employeeId) {
+        employeeServiceImpl.updateEmployee(employeeId, employee);
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
     @DeleteMapping(value = "/delete/{employeeId}")
     public ResponseEntity<?> deleteEmployee(@PathVariable(name = "employeeId") Long employeeId) {
         employeeServiceImpl.deleteEmployee(employeeId);

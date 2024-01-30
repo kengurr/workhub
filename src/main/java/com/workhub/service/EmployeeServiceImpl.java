@@ -37,9 +37,20 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
+    @Transactional
+    public void updateEmployee(Long employeeId, Employee employee) {
+        boolean existingEmployee = employeeRepository.existsById(employeeId);
+        if(!existingEmployee) {
+            throw new IllegalStateException("Cannot update employee, employee doesn't exist");
+        }
+        employee.setId(employeeId);
+        employeeRepository.save(employee);
+    }
+
+    @Override
     public void deleteEmployee(Long employeeId) {
-        boolean employeeExists = employeeRepository.existsById(employeeId);
-        if(!employeeExists) {
+        boolean existingEmployee = employeeRepository.existsById(employeeId);
+        if(!existingEmployee) {
             throw new IllegalStateException("Cannot delete employee, employee doesn't exist");
         }
         employeeRepository.deleteById(employeeId);
