@@ -7,7 +7,7 @@ public class ValidationUtils {
 
     public static void validateTechnicalSkills(Employee employee, Project project) {
         if (!employee.getTechnicalSkill().containsAll(project.getTechnology())) {
-            throw new IllegalArgumentException("Cannot assign employee to project, employee doesn't have technical skills");
+            throw new IllegalArgumentException("Cannot assign, employee doesn't have matching technical skills");
         }
     }
 }

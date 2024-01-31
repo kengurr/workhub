@@ -86,10 +86,6 @@ public class ProjectServiceImpl implements ProjectService {
         Employee employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new IllegalArgumentException("Employee not found with ID: " + employeeId));
 
-        if(!employee.getTechnicalSkill().containsAll(project.getTechnology())) {
-            throw new IllegalArgumentException("Cannot assign project to employee, employee doesn't have technical skills");
-        }
-
         ValidationUtils.validateTechnicalSkills(employee, project);
         project.addEmployee(employee);
         projectRepository.save(project);
