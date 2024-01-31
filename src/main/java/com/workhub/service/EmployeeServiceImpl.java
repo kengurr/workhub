@@ -3,6 +3,8 @@ package com.workhub.service;
 import com.workhub.Utils.ValidationUtils;
 import com.workhub.entity.Employee;
 import com.workhub.entity.Project;
+import com.workhub.exception.EmployeeNotFoundException;
+import com.workhub.exception.ProjectNotFoundException;
 import com.workhub.repository.EmployeeRepository;
 import com.workhub.repository.ProjectRepository;
 import jakarta.transaction.Transactional;
@@ -25,7 +27,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public Employee getEmployee(Long employeeId) {
         return employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new IllegalArgumentException("Employee not found with ID: " + employeeId));
+                .orElseThrow(() -> EmployeeNotFoundException.notFoundById(employeeId));
     }
 
     @Override
@@ -42,7 +44,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     public void updateEmployee(Long employeeId, Employee employee) {
         boolean existingEmployee = employeeRepository.existsById(employeeId);
         if(!existingEmployee) {
-            throw new IllegalStateException("Cannot update employee, employee doesn't exist");
+            throw EmployeeNotFoundException.cannotUpdate();
         }
         employee.setId(employeeId);
         employeeRepository.save(employee);
@@ -52,7 +54,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     public void deleteEmployee(Long employeeId) {
         boolean existingEmployee = employeeRepository.existsById(employeeId);
         if(!existingEmployee) {
-            throw new IllegalStateException("Cannot delete employee, employee doesn't exist");
+            throw EmployeeNotFoundException.cannotDelete();
         }
         employeeRepository.deleteById(employeeId);
     }
@@ -66,7 +68,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
 
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new IllegalArgumentException("Project not found with ID: " + projectId));
+                .orElseThrow(() -> ProjectNotFoundException.notFoundById(projectId));
 
         ValidationUtils.validateTechnicalSkills(employee, project);
         employee.addProject(project);
@@ -77,10 +79,10 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Transactional
     public void removeEmployeeForProject(Long employeeId, Long projectId) {
         Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new IllegalArgumentException("Employee not found with ID: " + employeeId));
+                .orElseThrow(() -> EmployeeNotFoundException.notFoundById(employeeId));
 
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new IllegalArgumentException("Project not found with ID: " + projectId));
+                .orElseThrow(() -> ProjectNotFoundException.notFoundById(projectId));
 
         employee.removeProject(project);
         employeeRepository.save(employee);
@@ -90,10 +92,10 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Transactional
     public void assignEmployeeToProject(Long employeeId, Long projectId) {
         Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> new IllegalArgumentException("Employee not found with ID: " + employeeId));
+                .orElseThrow(() -> EmployeeNotFoundException.notFoundById(employeeId));
 
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new IllegalArgumentException("Project not found with ID: " + projectId));
+                .orElseThrow(() -> ProjectNotFoundException.notFoundById(projectId));
 
         ValidationUtils.validateTechnicalSkills(employee, project);
         employee.addProject(project);
