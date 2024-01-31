@@ -26,7 +26,7 @@ public class Employee {
     private String name;
 
     @NonNull
-    @Column(name = "email")
+    @Column(name = "email", nullable =false, unique=true)
     private String email;
 
     @Column(name = "technicalSkill")

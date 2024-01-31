@@ -1,5 +1,6 @@
 package com.workhub.service;
 
+import com.workhub.Utils.ValidationUtils;
 import com.workhub.entity.Employee;
 import com.workhub.entity.Project;
 import com.workhub.repository.EmployeeRepository;
@@ -67,6 +68,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("Project not found with ID: " + projectId));
 
+        ValidationUtils.validateTechnicalSkills(employee, project);
         employee.addProject(project);
         employeeRepository.save(employee);
     }
@@ -93,6 +95,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new IllegalArgumentException("Project not found with ID: " + projectId));
 
+        ValidationUtils.validateTechnicalSkills(employee, project);
         employee.addProject(project);
         employeeRepository.save(employee);
     }
