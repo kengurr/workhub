@@ -2,7 +2,11 @@ package com.workhub.service;
 
 import com.workhub.entity.Project;
 
+import java.util.List;
+
 public interface ProjectService {
+
+    List<Project> getProjects();
 
     Project getProject(Long projectId);
 

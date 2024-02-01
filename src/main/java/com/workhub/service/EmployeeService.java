@@ -2,7 +2,11 @@ package com.workhub.service;
 
 import com.workhub.entity.Employee;
 
+import java.util.List;
+
 public interface EmployeeService {
+
+    List<Employee> getEmployees();
 
     Employee getEmployee(Long employeeId);
 

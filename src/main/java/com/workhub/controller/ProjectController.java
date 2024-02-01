@@ -7,6 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/project")
 public class ProjectController {
@@ -16,6 +18,12 @@ public class ProjectController {
     @Autowired
     public ProjectController(ProjectServiceImpl projectServiceImpl) {
         this.projectServiceImpl = projectServiceImpl;
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping(value = "/")
+    public List<Project> getProjects() {
+        return projectServiceImpl.getProjects();
     }
 
     @ResponseStatus(HttpStatus.OK)

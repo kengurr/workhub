@@ -11,6 +11,8 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class ProjectServiceImpl implements ProjectService {
 
@@ -28,6 +30,11 @@ public class ProjectServiceImpl implements ProjectService {
     public Project getProject(Long projectId) {
         return projectRepository.findById(projectId)
                 .orElseThrow(() -> ProjectNotFoundException.notFoundById(projectId));
+    }
+
+    @Override
+    public List<Project> getProjects() {
+        return projectRepository.findAll();
     }
 
     @Override
