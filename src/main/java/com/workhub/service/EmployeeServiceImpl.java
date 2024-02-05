@@ -1,6 +1,6 @@
 package com.workhub.service;
 
-import com.workhub.Utils.ValidationUtils;
+import com.workhub.Utils.TechnicalSkillsValidator;
 import com.workhub.entity.Employee;
 import com.workhub.entity.Project;
 import com.workhub.exception.EmployeeNotFoundException;
@@ -20,10 +20,14 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     private final ProjectRepository projectRepository;
 
+    private final TechnicalSkillsValidator technicalSkillsValidator;
+
     @Autowired
-    public EmployeeServiceImpl(EmployeeRepository employeeRepository, ProjectRepository projectRepository) {
+    public EmployeeServiceImpl(EmployeeRepository employeeRepository,
+                               ProjectRepository projectRepository, TechnicalSkillsValidator technicalSkillsValidator) {
         this.employeeRepository = employeeRepository;
         this.projectRepository = projectRepository;
+        this.technicalSkillsValidator = technicalSkillsValidator;
     }
 
     @Override
@@ -77,7 +81,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> ProjectNotFoundException.notFoundById(projectId));
 
-        ValidationUtils.validateTechnicalSkills(employee, project);
+        technicalSkillsValidator.validateTechnicalSkills(employee, project);
         employee.addProject(project);
         employeeRepository.save(employee);
     }
@@ -104,7 +108,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> ProjectNotFoundException.notFoundById(projectId));
 
-        ValidationUtils.validateTechnicalSkills(employee, project);
+        technicalSkillsValidator.validateTechnicalSkills(employee, project);
         employee.addProject(project);
         employeeRepository.save(employee);
     }
