@@ -8,23 +8,18 @@ import com.workhub.exception.ProjectNotFoundException;
 import com.workhub.repository.EmployeeRepository;
 import com.workhub.repository.ProjectRepository;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class ProjectServiceImpl implements ProjectService {
 
     private final ProjectRepository projectRepository;
-
     private final EmployeeRepository employeeRepository;
-
-    @Autowired
-    public ProjectServiceImpl(ProjectRepository projectRepository, EmployeeRepository employeeRepository) {
-        this.projectRepository = projectRepository;
-        this.employeeRepository = employeeRepository;
-    }
 
     @Override
     public Project getProject(Long projectId) {

@@ -2,6 +2,7 @@ package com.workhub.controller;
 
 import com.workhub.entity.Project;
 import com.workhub.service.ProjectServiceImpl;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,15 +11,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/project")
 public class ProjectController {
 
     private final ProjectServiceImpl projectServiceImpl;
-
-    @Autowired
-    public ProjectController(ProjectServiceImpl projectServiceImpl) {
-        this.projectServiceImpl = projectServiceImpl;
-    }
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping(value = "/")
