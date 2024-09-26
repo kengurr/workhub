@@ -22,4 +22,8 @@ public interface EmployeeService {
 
     void assignEmployeeToProject(Long employeeId, Long projectId);
 
+    List<Employee> searchEmployeesByName(String name);
+
+    List<Employee> getEmployeesByProject(Long projectId);
+
 }
