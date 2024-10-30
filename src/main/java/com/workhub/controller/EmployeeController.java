@@ -72,4 +72,14 @@ public class EmployeeController {
         return ResponseEntity.ok("Employee assigned to project successfully");
     }
 
+    @GetMapping("/search-by-name")
+    public List<Employee> searchEmployeesByName(@RequestParam(name = "name") String name) {
+        return employeeServiceImpl.searchEmployeesByName(name);
+    }
+
+    @GetMapping("/by-project/{projectId}")
+    public List<Employee> getEmployeesByProject(@PathVariable(name = "projectId") Long projectId) {
+        return employeeServiceImpl.getEmployeesByProject(projectId);
+    }
+
 }
