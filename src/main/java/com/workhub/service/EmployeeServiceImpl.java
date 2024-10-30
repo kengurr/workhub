@@ -5,6 +5,7 @@ import com.workhub.entity.Employee;
 import com.workhub.entity.Project;
 import com.workhub.exception.EmployeeNotFoundException;
 import com.workhub.exception.ProjectNotFoundException;
+import com.workhub.repository.EmployeeQueryDslRepository;
 import com.workhub.repository.EmployeeRepository;
 import com.workhub.repository.ProjectRepository;
 import jakarta.transaction.Transactional;
@@ -20,10 +21,13 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     private final ProjectRepository projectRepository;
 
+    private final EmployeeQueryDslRepository employeeQueryDslRepository;
+
     @Autowired
-    public EmployeeServiceImpl(EmployeeRepository employeeRepository, ProjectRepository projectRepository) {
+    public EmployeeServiceImpl(EmployeeRepository employeeRepository, ProjectRepository projectRepository, EmployeeQueryDslRepository employeeQueryDslRepository) {
         this.employeeRepository = employeeRepository;
         this.projectRepository = projectRepository;
+        this.employeeQueryDslRepository = employeeQueryDslRepository;
     }
 
     @Override
@@ -108,4 +112,15 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.addProject(project);
         employeeRepository.save(employee);
     }
+
+    @Override
+    public List<Employee> searchEmployeesByName(String name) {
+        return employeeQueryDslRepository.findEmployeesByName(name);
+    }
+
+    @Override
+    public List<Employee> getEmployeesByProject(Long projectId) {
+        return employeeQueryDslRepository.findEmployeesByProject(projectId);
+    }
+
 }
