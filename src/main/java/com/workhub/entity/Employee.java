@@ -2,6 +2,7 @@ package com.workhub.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -9,6 +10,7 @@ import lombok.Setter;
 import java.util.HashSet;
 import java.util.Set;
 
+@AllArgsConstructor
 @Setter
 @Getter
 @Table
