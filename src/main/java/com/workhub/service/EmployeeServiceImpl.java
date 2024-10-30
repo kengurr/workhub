@@ -27,15 +27,10 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Autowired
     public EmployeeServiceImpl(EmployeeRepository employeeRepository,
-                               ProjectRepository projectRepository, TechnicalSkillsValidator technicalSkillsValidator) {
+                               ProjectRepository projectRepository, TechnicalSkillsValidator technicalSkillsValidator, EmployeeQueryDslRepository employeeQueryDslRepository) {
         this.employeeRepository = employeeRepository;
         this.projectRepository = projectRepository;
         this.technicalSkillsValidator = technicalSkillsValidator;
-
-    @Autowired
-    public EmployeeServiceImpl(EmployeeRepository employeeRepository, ProjectRepository projectRepository, EmployeeQueryDslRepository employeeQueryDslRepository) {
-        this.employeeRepository = employeeRepository;
-        this.projectRepository = projectRepository;
         this.employeeQueryDslRepository = employeeQueryDslRepository;
     }
 
