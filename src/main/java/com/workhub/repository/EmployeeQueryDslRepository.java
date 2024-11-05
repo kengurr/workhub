@@ -5,7 +5,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.workhub.entity.Employee;
 import com.workhub.entity.QEmployee;
 import jakarta.persistence.EntityManager;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -15,7 +14,6 @@ public class EmployeeQueryDslRepository {
 
     private final JPAQueryFactory queryFactory;
 
-    @Autowired
     public EmployeeQueryDslRepository(EntityManager entityManager) {
         this.queryFactory = new JPAQueryFactory(entityManager);
     }

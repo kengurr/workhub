@@ -1,39 +1,34 @@
 package com.workhub.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.HashSet;
 import java.util.Set;
 
 @AllArgsConstructor
+@NoArgsConstructor
 @Setter
 @Getter
 @Entity
-@Table
-public class Project {
+@Table(name = "projects")
+public class Project extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "project_id_seq")
     @SequenceGenerator(name = "project_id_seq", sequenceName = "project_id_seq",  allocationSize=1)
-    @Column(name = "ID")
     private Long id;
 
-    @NonNull
-    @Column(name = "name")
     private String name;
 
-    @Column(name = "technology")
     @Enumerated(EnumType.STRING)
     private Set<Technology> technology;
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE }, mappedBy = "projects")
     private Set<Employee> employees;
 
-    public Project() {
+    public Project(@NonNull String name) {
+        this.name = name;
         this.employees = new HashSet<>();
     }
 

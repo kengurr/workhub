@@ -3,6 +3,7 @@ package com.workhub.service;
 import com.workhub.Utils.TechnicalSkillsValidator;
 import com.workhub.entity.Employee;
 import com.workhub.entity.Project;
+import com.workhub.entity.Role;
 import com.workhub.entity.Technology;
 import com.workhub.exception.EmployeeNotFoundException;
 import com.workhub.exception.ProjectNotFoundException;
@@ -42,7 +43,7 @@ class EmployeeServiceTest {
 
     @BeforeEach
     void setUp() {
-        testEmployee = new Employee(1L, "Employee 1", "employee1@example.com", EnumSet.allOf(Technology.class), new HashSet<>());
+        testEmployee = new Employee(1L, "Employee 1", "employee1@example.com", "pass", Role.ADMIN, EnumSet.allOf(Technology.class), new HashSet<>());
         testProject = new Project(1L, "Project 1", new HashSet<>(), new HashSet<>());
     }
     @Test
@@ -197,7 +198,7 @@ class EmployeeServiceTest {
 
     @Test
     void removeEmployeeForProject_WhenProjectNotFound_ShouldThrowException() {
-        when(employeeRepository.findById(testEmployee.getId())).thenReturn(Optional.of(new Employee()));
+        when(employeeRepository.findById(testEmployee.getId())).thenReturn(Optional.of(new Employee(testEmployee.getName(), testEmployee.getEmail())));
         when(projectRepository.findById(testProject.getId())).thenReturn(Optional.empty());
 
         assertThrows(ProjectNotFoundException.class,
@@ -229,7 +230,7 @@ class EmployeeServiceTest {
 
     @Test
     void assignEmployeeToProject_WhenProjectNotFound_ShouldThrowException() {
-        when(employeeRepository.findById(testEmployee.getId())).thenReturn(Optional.of(new Employee()));
+        when(employeeRepository.findById(testEmployee.getId())).thenReturn(Optional.of(new Employee(testEmployee.getName(), testEmployee.getEmail())));
         when(projectRepository.findById(testProject.getId())).thenReturn(Optional.empty());
 
         assertThrows(ProjectNotFoundException.class,

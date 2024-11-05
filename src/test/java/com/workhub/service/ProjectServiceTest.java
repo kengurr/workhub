@@ -3,6 +3,7 @@ package com.workhub.service;
 import com.workhub.Utils.TechnicalSkillsValidator;
 import com.workhub.entity.Employee;
 import com.workhub.entity.Project;
+import com.workhub.entity.Role;
 import com.workhub.entity.Technology;
 import com.workhub.exception.EmployeeNotFoundException;
 import com.workhub.exception.ProjectNotFoundException;
@@ -46,7 +47,7 @@ class ProjectServiceTest {
     @BeforeEach
     void setUp() {
         testProject = new Project(1L, "Project 1", new HashSet<>(), new HashSet<>());
-        testEmployee = new Employee(1L, "Employee 1", "employee1@example.com", EnumSet.allOf(Technology.class), new HashSet<>());
+        testEmployee = new Employee(1L, "Employee 1", "employee1@example.com", "pass", Role.ADMIN, EnumSet.allOf(Technology.class), new HashSet<>());
     }
 
     @Test
@@ -78,13 +79,13 @@ class ProjectServiceTest {
     }
 
     @Test
-    public void createProject_shouldSaveProject() {
+    void createProject_shouldSaveProject() {
         assertDoesNotThrow(() -> projectService.createProject(testProject));
         verify(projectRepository, times(1)).save(testProject);
     }
 
     @Test
-    public void updateProject_whenProjectExists_shouldUpdateProject() {
+    void updateProject_whenProjectExists_shouldUpdateProject() {
         when(projectRepository.existsById(testProject.getId())).thenReturn(true);
 
         assertDoesNotThrow(() -> projectService.updateProject(testProject.getId(), testProject));
@@ -93,7 +94,7 @@ class ProjectServiceTest {
     }
 
     @Test
-    public void updateProject_whenProjectDoesNotExist_shouldThrowException() {
+    void updateProject_whenProjectDoesNotExist_shouldThrowException() {
         when(projectRepository.existsById(testProject.getId())).thenReturn(false);
 
         assertThrows(ProjectNotFoundException.class, 
@@ -103,7 +104,7 @@ class ProjectServiceTest {
     }
 
     @Test
-    public void deleteProject_whenProjectExists_shouldDeleteProject() {
+    void deleteProject_whenProjectExists_shouldDeleteProject() {
         when(projectRepository.existsById(testProject.getId())).thenReturn(true);
 
         projectService.deleteProject(testProject.getId());
@@ -112,7 +113,7 @@ class ProjectServiceTest {
     }
 
     @Test
-    public void deleteProject_whenProjectDoesNotExist_shouldThrowException() {
+    void deleteProject_whenProjectDoesNotExist_shouldThrowException() {
         when(projectRepository.existsById(testProject.getId())).thenReturn(false);
 
         assertThrows(ProjectNotFoundException.class,
@@ -122,7 +123,7 @@ class ProjectServiceTest {
     }
 
     @Test
-    public void createProjectForEmployee_ShouldSaveProjectAndAssignToEmployee() {
+    void createProjectForEmployee_ShouldSaveProjectAndAssignToEmployee() {
         when(employeeRepository.findById(testEmployee.getId())).thenReturn(Optional.of(testEmployee));
 
         assertDoesNotThrow(() -> projectService.createProjectForEmployee(testProject, testEmployee.getId()));
@@ -145,17 +146,17 @@ class ProjectServiceTest {
     }
 
     @Test
-    public void createProjectForEmployee_whenEmployeeNotFound_shouldThrowException() {
+    void createProjectForEmployee_whenEmployeeNotFound_shouldThrowException() {
         when(employeeRepository.findById(testEmployee.getId())).thenReturn(Optional.empty());
 
         assertThrows(EmployeeNotFoundException.class,
-                () -> projectService.createProjectForEmployee(new Project(), testEmployee.getId()));
+                () -> projectService.createProjectForEmployee(new Project(testProject.getName()), testEmployee.getId()));
 
         verify(projectRepository, never()).save(any());
     }
 
     @Test
-    public void removeProjectForEmployee_whenProjectAndEmployeeExist_shouldRemoveEmployee() {
+    void removeProjectForEmployee_whenProjectAndEmployeeExist_shouldRemoveEmployee() {
         when(projectRepository.findById(testProject.getId())).thenReturn(Optional.of(testProject));
         when(employeeRepository.findById(testEmployee.getId())).thenReturn(Optional.of(testEmployee));
 
@@ -166,7 +167,7 @@ class ProjectServiceTest {
     }
 
     @Test
-    public void removeProjectForEmployee_whenProjectNotFound_shouldThrowException() {
+    void removeProjectForEmployee_whenProjectNotFound_shouldThrowException() {
         when(projectRepository.findById(testProject.getId())).thenReturn(Optional.empty());
 
         assertThrows(ProjectNotFoundException.class,
@@ -176,7 +177,7 @@ class ProjectServiceTest {
     }
 
     @Test
-    public void removeProjectForEmployee_whenEmployeeNotFound_shouldThrowException() {
+    void removeProjectForEmployee_whenEmployeeNotFound_shouldThrowException() {
         when(projectRepository.findById(testProject.getId())).thenReturn(Optional.of(testProject));
         when(employeeRepository.findById(testEmployee.getId())).thenReturn(Optional.empty());
 
@@ -187,7 +188,7 @@ class ProjectServiceTest {
     }
 
     @Test
-    public void assignProjectToEmployee_whenProjectAndEmployeeExist_shouldAssignProject() {
+    void assignProjectToEmployee_whenProjectAndEmployeeExist_shouldAssignProject() {
         when(projectRepository.findById(testProject.getId())).thenReturn(Optional.of(testProject));
         when(employeeRepository.findById(testEmployee.getId())).thenReturn(Optional.of(testEmployee));
 
@@ -199,7 +200,7 @@ class ProjectServiceTest {
     }
 
     @Test
-    public void assignProjectToEmployee_whenProjectNotFound_shouldThrowException() {
+    void assignProjectToEmployee_whenProjectNotFound_shouldThrowException() {
         when(projectRepository.findById(testProject.getId())).thenReturn(Optional.empty());
 
         assertThrows(ProjectNotFoundException.class,
@@ -209,7 +210,7 @@ class ProjectServiceTest {
     }
 
     @Test
-    public void assignProjectToEmployee_whenEmployeeNotFound_shouldThrowException() {
+    void assignProjectToEmployee_whenEmployeeNotFound_shouldThrowException() {
         when(projectRepository.findById(testProject.getId())).thenReturn(Optional.of(testProject));
         when(employeeRepository.findById(testEmployee.getId())).thenReturn(Optional.empty());
 
@@ -220,7 +221,7 @@ class ProjectServiceTest {
     }
 
     @Test
-    public void assignProjectToEmployee_WhenTechnicalSkillsMismatch_ShouldThrowException() {
+    void assignProjectToEmployee_WhenTechnicalSkillsMismatch_ShouldThrowException() {
         when(projectRepository.findById(testProject.getId())).thenReturn(Optional.of(testProject));
         when(employeeRepository.findById(testEmployee.getId())).thenReturn(Optional.of(testEmployee));
 

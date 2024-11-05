@@ -4,11 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.workhub.dto.AuthenticationRequest;
 import com.workhub.dto.AuthenticationResponse;
 import com.workhub.dto.RegisterRequest;
+import com.workhub.entity.Employee;
 import com.workhub.entity.Token;
 import com.workhub.entity.TokenType;
-import com.workhub.entity.User;
+import com.workhub.repository.EmployeeRepository;
 import com.workhub.repository.TokenRepository;
-import com.workhub.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +25,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AuthenticationServiceImpl implements AuthenticationService {
 
-    private final UserRepository repository;
+    private final EmployeeRepository repository;
     private final TokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
@@ -33,26 +33,27 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public AuthenticationResponse register(RegisterRequest request) {
-        User user = User.builder()
+        Employee employee = Employee.builder()
+                .name(request.getName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(request.getRole())
                 .build();
-        User savedUser = repository.save(user);
-        String jwtToken = jwtService.generateToken(user);
-        String refreshToken = jwtService.generateRefreshToken(user);
-        saveUserToken(savedUser, jwtToken);
+        Employee savedEmployee = repository.save(employee);
+        String jwtToken = jwtService.generateToken(employee);
+        String refreshToken = jwtService.generateRefreshToken(employee);
+        saveUserToken(savedEmployee, jwtToken);
         return AuthenticationResponse.builder().accessToken(jwtToken).refreshToken(refreshToken).build();
     }
 
     @Override
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
-        User user = repository.findByEmail(request.getEmail()).orElseThrow();
-        String jwtToken = jwtService.generateToken(user);
-        String refreshToken = jwtService.generateRefreshToken(user);
-        revokeAllUserTokens(user);
-        saveUserToken(user, jwtToken);
+        Employee employee = repository.findByEmail(request.getEmail()).orElseThrow();
+        String jwtToken = jwtService.generateToken(employee);
+        String refreshToken = jwtService.generateRefreshToken(employee);
+        revokeAllUserTokens(employee);
+        saveUserToken(employee, jwtToken);
         return AuthenticationResponse.builder().accessToken(jwtToken).refreshToken(refreshToken).build();
     }
 
@@ -61,18 +62,18 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         final String refreshToken;
-        final String userEmail;
+        final String employeeEmail;
         if (authHeader == null ||!authHeader.startsWith("Bearer ")) {
             return;
         }
         refreshToken = authHeader.substring(7);
-        userEmail = jwtService.extractUsername(refreshToken);
-        if (userEmail != null) {
-            User user = this.repository.findByEmail(userEmail).orElseThrow();
-            if (jwtService.isTokenValid(refreshToken, user)) {
-                String accessToken = jwtService.generateToken(user);
-                revokeAllUserTokens(user);
-                saveUserToken(user, accessToken);
+        employeeEmail = jwtService.extractUsername(refreshToken);
+        if (employeeEmail != null) {
+            Employee employee = this.repository.findByEmail(employeeEmail).orElseThrow();
+            if (jwtService.isTokenValid(refreshToken, employee)) {
+                String accessToken = jwtService.generateToken(employee);
+                revokeAllUserTokens(employee);
+                saveUserToken(employee, accessToken);
 
                 AuthenticationResponse authResponse = AuthenticationResponse.builder()
                         .accessToken(accessToken)
@@ -83,9 +84,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
     }
 
-    private void saveUserToken(User user, String jwtToken) {
+    private void saveUserToken(Employee employee, String jwtToken) {
         Token token = Token.builder()
-                .user(user)
+                .employee(employee)
                 .token(jwtToken)
                 .tokenType(TokenType.BEARER)
                 .expired(false)
@@ -94,8 +95,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         tokenRepository.save(token);
     }
 
-    private void revokeAllUserTokens(User user) {
-        List<Token> validUserTokens = tokenRepository.findAllValidTokenByUser(user.getId());
+    private void revokeAllUserTokens(Employee employee) {
+        List<Token> validUserTokens = tokenRepository.findAllValidTokenByEmployee(employee.getId());
         if (validUserTokens.isEmpty())
             return;
         validUserTokens.forEach(token -> {

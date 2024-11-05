@@ -1,6 +1,7 @@
 package com.workhub.service;
 
 import com.workhub.Utils.TechnicalSkillsValidator;
+import com.workhub.dto.ChangePasswordRequest;
 import com.workhub.entity.Employee;
 import com.workhub.entity.Project;
 import com.workhub.exception.EmployeeNotFoundException;
@@ -9,9 +10,11 @@ import com.workhub.repository.EmployeeQueryDslRepository;
 import com.workhub.repository.EmployeeRepository;
 import com.workhub.repository.ProjectRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.security.Principal;
 import java.util.List;
 
 @Service
@@ -25,13 +28,15 @@ public class EmployeeServiceImpl implements EmployeeService {
   
     private final EmployeeQueryDslRepository employeeQueryDslRepository;
 
-    @Autowired
+    private final PasswordEncoder passwordEncoder;
+
     public EmployeeServiceImpl(EmployeeRepository employeeRepository,
-                               ProjectRepository projectRepository, TechnicalSkillsValidator technicalSkillsValidator, EmployeeQueryDslRepository employeeQueryDslRepository) {
+                               ProjectRepository projectRepository, TechnicalSkillsValidator technicalSkillsValidator, EmployeeQueryDslRepository employeeQueryDslRepository, PasswordEncoder passwordEncoder) {
         this.employeeRepository = employeeRepository;
         this.projectRepository = projectRepository;
         this.technicalSkillsValidator = technicalSkillsValidator;
         this.employeeQueryDslRepository = employeeQueryDslRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
@@ -125,6 +130,22 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public List<Employee> getEmployeesByProject(Long projectId) {
         return employeeQueryDslRepository.findEmployeesByProject(projectId);
+    }
+
+    @Override
+    public void changePassword(ChangePasswordRequest request, Principal connectedUser) {
+
+        var employee = (Employee) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), employee.getPassword())) {
+            throw new IllegalStateException("Wrong password");
+        }
+        if (!request.getNewPassword().equals(request.getConfirmationPassword())) {
+            throw new IllegalStateException("Password are not the same");
+        }
+
+        employee.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        employeeRepository.save(employee);
     }
 
 }

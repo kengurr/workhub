@@ -1,7 +1,6 @@
 package com.workhub.service;
 
 import com.workhub.Utils.TechnicalSkillsValidator;
-import com.workhub.Utils.ValidationUtils;
 import com.workhub.entity.Employee;
 import com.workhub.entity.Project;
 import com.workhub.exception.EmployeeNotFoundException;
@@ -9,7 +8,6 @@ import com.workhub.exception.ProjectNotFoundException;
 import com.workhub.repository.EmployeeRepository;
 import com.workhub.repository.ProjectRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,7 +21,6 @@ public class ProjectServiceImpl implements ProjectService {
 
     private final TechnicalSkillsValidator technicalSkillsValidator;
 
-    @Autowired
     public ProjectServiceImpl(ProjectRepository projectRepository,
                               EmployeeRepository employeeRepository, TechnicalSkillsValidator technicalSkillsValidator) {
         this.projectRepository = projectRepository;
