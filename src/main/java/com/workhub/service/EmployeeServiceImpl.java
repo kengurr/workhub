@@ -3,7 +3,6 @@ package com.workhub.service;
 import com.workhub.Utils.TechnicalSkillsValidator;
 import com.workhub.dto.ChangePasswordRequest;
 import com.workhub.entity.Employee;
-import com.workhub.entity.Project;
 import com.workhub.exception.EmployeeNotFoundException;
 import com.workhub.exception.ProjectNotFoundException;
 import com.workhub.repository.EmployeeQueryDslRepository;
@@ -52,8 +51,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public void createEmployee(Employee employee) {
-        Employee existingEmployee = employeeRepository.findEmployeeByEmail(employee.getEmail());
-        if(existingEmployee != null) {
+        if(checkEmployeeExists(employee.getEmail())) {
             throw new IllegalStateException("Cannot create employee, email already taken");
         }
         employeeRepository.save(employee);
@@ -81,44 +79,34 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     @Transactional
-    public void createEmployeeForProject(Employee employee, Long projectId) {
-        Employee existingEmployee = employeeRepository.findEmployeeByEmail(employee.getEmail());
-        if(existingEmployee != null) {
-            throw new IllegalStateException("Cannot create employee, email already taken");
-        }
-
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> ProjectNotFoundException.notFoundById(projectId));
-
-        technicalSkillsValidator.validateTechnicalSkills(employee, project);
-        employee.addProject(project);
-        employeeRepository.save(employee);
-    }
-
-    @Override
-    @Transactional
-    public void removeEmployeeForProject(Long employeeId, Long projectId) {
-        Employee employee = employeeRepository.findById(employeeId)
+    public void removeEmployeeFromProject(Long employeeId, Long projectId) {
+        var employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> EmployeeNotFoundException.notFoundById(employeeId));
 
-        Project project = projectRepository.findById(projectId)
+        var project = projectRepository.findById(projectId)
                 .orElseThrow(() -> ProjectNotFoundException.notFoundById(projectId));
 
-        employee.removeProject(project);
+        employee.getProjects().remove(project);
+        project.getEmployees().remove(employee);
+
         employeeRepository.save(employee);
     }
 
     @Override
     @Transactional
     public void assignEmployeeToProject(Long employeeId, Long projectId) {
-        Employee employee = employeeRepository.findById(employeeId)
+        var employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> EmployeeNotFoundException.notFoundById(employeeId));
 
-        Project project = projectRepository.findById(projectId)
+        var project = projectRepository.findById(projectId)
                 .orElseThrow(() -> ProjectNotFoundException.notFoundById(projectId));
 
         technicalSkillsValidator.validateTechnicalSkills(employee, project);
-        employee.addProject(project);
+        if (!employee.getProjects().contains(project)) {
+            employee.getProjects().add(project);
+            project.getEmployees().add(employee);
+        }
+
         employeeRepository.save(employee);
     }
 
@@ -146,6 +134,11 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         employee.setPassword(passwordEncoder.encode(request.getNewPassword()));
         employeeRepository.save(employee);
+    }
+
+    private boolean checkEmployeeExists(String email) {
+        long checkItemCounts = employeeRepository.countByEmail(email);
+        return checkItemCounts > 0;
     }
 
 }

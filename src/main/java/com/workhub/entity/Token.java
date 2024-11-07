@@ -1,5 +1,6 @@
 package com.workhub.entity;
 
+import com.workhub.dto.TokenType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

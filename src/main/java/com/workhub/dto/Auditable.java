@@ -1,4 +1,4 @@
-package com.workhub.entity;
+package com.workhub.dto;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;

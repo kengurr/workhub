@@ -1,6 +1,5 @@
 package com.workhub.dto;
 
-import com.workhub.entity.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

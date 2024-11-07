@@ -6,7 +6,7 @@ import com.workhub.dto.AuthenticationResponse;
 import com.workhub.dto.RegisterRequest;
 import com.workhub.entity.Employee;
 import com.workhub.entity.Token;
-import com.workhub.entity.TokenType;
+import com.workhub.dto.TokenType;
 import com.workhub.repository.EmployeeRepository;
 import com.workhub.repository.TokenRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,7 +19,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -33,15 +32,15 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public AuthenticationResponse register(RegisterRequest request) {
-        Employee employee = Employee.builder()
+        var employee = Employee.builder()
                 .name(request.getName())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(request.getRole())
                 .build();
-        Employee savedEmployee = repository.save(employee);
-        String jwtToken = jwtService.generateToken(employee);
-        String refreshToken = jwtService.generateRefreshToken(employee);
+        var savedEmployee = repository.save(employee);
+        var jwtToken = jwtService.generateToken(employee);
+        var refreshToken = jwtService.generateRefreshToken(employee);
         saveUserToken(savedEmployee, jwtToken);
         return AuthenticationResponse.builder().accessToken(jwtToken).refreshToken(refreshToken).build();
     }
@@ -49,9 +48,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
-        Employee employee = repository.findByEmail(request.getEmail()).orElseThrow();
-        String jwtToken = jwtService.generateToken(employee);
-        String refreshToken = jwtService.generateRefreshToken(employee);
+        var employee = repository.findByEmail(request.getEmail()).orElseThrow();
+        var jwtToken = jwtService.generateToken(employee);
+        var refreshToken = jwtService.generateRefreshToken(employee);
         revokeAllUserTokens(employee);
         saveUserToken(employee, jwtToken);
         return AuthenticationResponse.builder().accessToken(jwtToken).refreshToken(refreshToken).build();
@@ -69,9 +68,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         refreshToken = authHeader.substring(7);
         employeeEmail = jwtService.extractUsername(refreshToken);
         if (employeeEmail != null) {
-            Employee employee = this.repository.findByEmail(employeeEmail).orElseThrow();
+            var employee = this.repository.findByEmail(employeeEmail).orElseThrow();
             if (jwtService.isTokenValid(refreshToken, employee)) {
-                String accessToken = jwtService.generateToken(employee);
+                var accessToken = jwtService.generateToken(employee);
                 revokeAllUserTokens(employee);
                 saveUserToken(employee, accessToken);
 
@@ -85,7 +84,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     private void saveUserToken(Employee employee, String jwtToken) {
-        Token token = Token.builder()
+        var token = Token.builder()
                 .employee(employee)
                 .token(jwtToken)
                 .tokenType(TokenType.BEARER)
@@ -96,7 +95,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     private void revokeAllUserTokens(Employee employee) {
-        List<Token> validUserTokens = tokenRepository.findAllValidTokenByEmployee(employee.getId());
+        var validUserTokens = tokenRepository.findAllValidTokenByEmployee(employee.getId());
         if (validUserTokens.isEmpty())
             return;
         validUserTokens.forEach(token -> {

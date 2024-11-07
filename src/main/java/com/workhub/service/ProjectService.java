@@ -16,9 +16,7 @@ public interface ProjectService {
 
     void deleteProject(Long projectId);
 
-    void createProjectForEmployee(Project project, Long employeeId);
-
-    void removeProjectForEmployee(Long projectId, Long employeeId);
+    void removeProjectFromEmployee(Long projectId, Long employeeId);
 
     void assignProjectToEmployee(Long projectId, Long employeeId);
 

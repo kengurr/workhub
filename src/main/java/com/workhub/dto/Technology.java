@@ -1,4 +1,4 @@
-package com.workhub.entity;
+package com.workhub.dto;
 
 public enum Technology {
 

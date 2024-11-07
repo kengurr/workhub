@@ -1,5 +1,6 @@
-package com.workhub.entity;
+package com.workhub.dto;
 
+import com.workhub.dto.Permission;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +11,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.workhub.entity.Permission.*;
+import static com.workhub.dto.Permission.*;
 
 @Getter
 @RequiredArgsConstructor

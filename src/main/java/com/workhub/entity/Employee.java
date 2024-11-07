@@ -1,6 +1,9 @@
 package com.workhub.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.workhub.dto.Auditable;
+import com.workhub.dto.Role;
+import com.workhub.dto.Technology;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -14,7 +17,6 @@ import java.util.Set;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Data
 @Builder
 @Setter
 @Getter
@@ -39,7 +41,7 @@ public class Employee extends Auditable implements UserDetails {
     private Role role;
 
     @Enumerated(EnumType.STRING)
-    private Set<Technology> technicalSkill;
+    private Set<Technology> technicalSkill = new HashSet<>();
 
     @JsonIgnore
     @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
@@ -51,18 +53,6 @@ public class Employee extends Auditable implements UserDetails {
         this.name = name;
         this.email = email;
         this.projects = new HashSet<>();
-    }
-
-    public void addProject(Project project) {
-        if (!this.projects.contains(project)) {
-            this.projects.add(project);
-            project.getEmployees().add(this);
-        }
-    }
-
-    public void removeProject(Project project) {
-        this.projects.remove(project);
-        project.getEmployees().remove(this);
     }
 
     @Override

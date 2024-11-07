@@ -1,5 +1,7 @@
 package com.workhub.entity;
 
+import com.workhub.dto.Auditable;
+import com.workhub.dto.Technology;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,7 +24,7 @@ public class Project extends Auditable {
     private String name;
 
     @Enumerated(EnumType.STRING)
-    private Set<Technology> technology;
+    private Set<Technology> technology = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE }, mappedBy = "projects")
     private Set<Employee> employees;
@@ -30,18 +32,6 @@ public class Project extends Auditable {
     public Project(@NonNull String name) {
         this.name = name;
         this.employees = new HashSet<>();
-    }
-
-    public void addEmployee(Employee employee) {
-        if (!this.employees.contains(employee)) {
-            this.employees.add(employee);
-            employee.getProjects().add(this);
-        }
-    }
-
-    public void removeEmployee(Employee employee) {
-        this.employees.remove(employee);
-        employee.getProjects().remove(this);
     }
 
 }

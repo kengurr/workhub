@@ -1,7 +1,6 @@
 package com.workhub.service;
 
 import com.workhub.Utils.TechnicalSkillsValidator;
-import com.workhub.entity.Employee;
 import com.workhub.entity.Project;
 import com.workhub.exception.EmployeeNotFoundException;
 import com.workhub.exception.ProjectNotFoundException;
@@ -66,39 +65,34 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     @Transactional
-    public void createProjectForEmployee(Project project, Long employeeId) {
-        Employee employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> EmployeeNotFoundException.notFoundById(employeeId));
-
-        technicalSkillsValidator.validateTechnicalSkills(employee, project);
-        project.addEmployee(employee);
-        projectRepository.save(project);
-    }
-
-    @Override
-    @Transactional
-    public void removeProjectForEmployee(Long projectId, Long employeeId) {
-        Project project = projectRepository.findById(projectId)
+    public void removeProjectFromEmployee(Long projectId, Long employeeId) {
+        var project = projectRepository.findById(projectId)
                 .orElseThrow(() -> ProjectNotFoundException.notFoundById(projectId));
 
-        Employee employee = employeeRepository.findById(employeeId)
+        var employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> EmployeeNotFoundException.notFoundById(employeeId));
 
-        project.removeEmployee(employee);
+        project.getEmployees().remove(employee);
+        employee.getProjects().remove(project);
+
         projectRepository.save(project);
     }
 
     @Override
     @Transactional
     public void assignProjectToEmployee(Long projectId, Long employeeId) {
-        Project project = projectRepository.findById(projectId)
+        var project = projectRepository.findById(projectId)
                 .orElseThrow(() -> ProjectNotFoundException.notFoundById(projectId));
 
-        Employee employee = employeeRepository.findById(employeeId)
+        var employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> EmployeeNotFoundException.notFoundById(employeeId));
 
         technicalSkillsValidator.validateTechnicalSkills(employee, project);
-        project.addEmployee(employee);
+        if (!project.getEmployees().contains(employee)) {
+            project.getEmployees().add(employee);
+            employee.getProjects().add(project);
+        }
+
         projectRepository.save(project);
     }
 

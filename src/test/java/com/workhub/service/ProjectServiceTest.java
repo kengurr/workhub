@@ -3,8 +3,8 @@ package com.workhub.service;
 import com.workhub.Utils.TechnicalSkillsValidator;
 import com.workhub.entity.Employee;
 import com.workhub.entity.Project;
-import com.workhub.entity.Role;
-import com.workhub.entity.Technology;
+import com.workhub.dto.Role;
+import com.workhub.dto.Technology;
 import com.workhub.exception.EmployeeNotFoundException;
 import com.workhub.exception.ProjectNotFoundException;
 import com.workhub.exception.TechnicalSkillsException;
@@ -123,44 +123,11 @@ class ProjectServiceTest {
     }
 
     @Test
-    void createProjectForEmployee_ShouldSaveProjectAndAssignToEmployee() {
-        when(employeeRepository.findById(testEmployee.getId())).thenReturn(Optional.of(testEmployee));
-
-        assertDoesNotThrow(() -> projectService.createProjectForEmployee(testProject, testEmployee.getId()));
-
-        verify(projectRepository, times(1)).save(testProject);
-        assertTrue(testProject.getEmployees().contains(testEmployee));
-    }
-
-    @Test
-    void createProjectForEmployee_WhenTechnicalSkillsMismatch_ShouldThrowException() {
-        when(employeeRepository.findById(testEmployee.getId())).thenReturn(Optional.of(testEmployee));
-
-        doThrow(TechnicalSkillsException.class)
-                .when(technicalSkillsValidator).validateTechnicalSkills(testEmployee, testProject);
-
-        assertThrows(TechnicalSkillsException.class,
-                () -> projectService.createProjectForEmployee(testProject, testEmployee.getId()));
-
-        verify(projectRepository, never()).save(any());
-    }
-
-    @Test
-    void createProjectForEmployee_whenEmployeeNotFound_shouldThrowException() {
-        when(employeeRepository.findById(testEmployee.getId())).thenReturn(Optional.empty());
-
-        assertThrows(EmployeeNotFoundException.class,
-                () -> projectService.createProjectForEmployee(new Project(testProject.getName()), testEmployee.getId()));
-
-        verify(projectRepository, never()).save(any());
-    }
-
-    @Test
     void removeProjectForEmployee_whenProjectAndEmployeeExist_shouldRemoveEmployee() {
         when(projectRepository.findById(testProject.getId())).thenReturn(Optional.of(testProject));
         when(employeeRepository.findById(testEmployee.getId())).thenReturn(Optional.of(testEmployee));
 
-        assertDoesNotThrow(() -> projectService.removeProjectForEmployee(testProject.getId(), testEmployee.getId()));
+        assertDoesNotThrow(() -> projectService.removeProjectFromEmployee(testProject.getId(), testEmployee.getId()));
 
         verify(projectRepository, times(1)).save(testProject);
         assertFalse(testProject.getEmployees().contains(testEmployee));
@@ -171,7 +138,7 @@ class ProjectServiceTest {
         when(projectRepository.findById(testProject.getId())).thenReturn(Optional.empty());
 
         assertThrows(ProjectNotFoundException.class,
-                () -> projectService.removeProjectForEmployee(testProject.getId(), testEmployee.getId()));
+                () -> projectService.removeProjectFromEmployee(testProject.getId(), testEmployee.getId()));
 
         verify(projectRepository, never()).save(any());
     }
@@ -182,7 +149,7 @@ class ProjectServiceTest {
         when(employeeRepository.findById(testEmployee.getId())).thenReturn(Optional.empty());
 
         assertThrows(EmployeeNotFoundException.class,
-                () -> projectService.removeProjectForEmployee(testProject.getId(), testEmployee.getId()));
+                () -> projectService.removeProjectFromEmployee(testProject.getId(), testEmployee.getId()));
 
         verify(projectRepository, never()).save(any());
     }
