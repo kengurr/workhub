@@ -1,31 +1,134 @@
 package com.workhub.service;
 
+import com.workhub.Utils.TechnicalSkillsValidator;
 import com.workhub.dto.ChangePasswordRequest;
 import com.workhub.entity.Employee;
+import com.workhub.exception.EmployeeNotFoundException;
+import com.workhub.exception.ProjectNotFoundException;
+import com.workhub.repository.EmployeeQueryDslRepository;
+import com.workhub.repository.EmployeeRepository;
+import com.workhub.repository.ProjectRepository;
+import jakarta.transaction.Transactional;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
 import java.security.Principal;
 import java.util.List;
 
-public interface EmployeeService {
+@Service
+public class EmployeeService {
 
-    List<Employee> getEmployees();
+    private final EmployeeRepository employeeRepository;
 
-    Employee getEmployee(Long employeeId);
+    private final ProjectRepository projectRepository;
 
-    void createEmployee(Employee employee);
-    
-    void updateEmployee(Long employeeId, Employee employee);
+    private final TechnicalSkillsValidator technicalSkillsValidator;
+  
+    private final EmployeeQueryDslRepository employeeQueryDslRepository;
 
-    void deleteEmployee(Long employeeId);
+    private final PasswordEncoder passwordEncoder;
 
-    void removeEmployeeFromProject(Long employeeId, Long projectId);
+    public EmployeeService(EmployeeRepository employeeRepository,
+                           ProjectRepository projectRepository, TechnicalSkillsValidator technicalSkillsValidator, EmployeeQueryDslRepository employeeQueryDslRepository, PasswordEncoder passwordEncoder) {
+        this.employeeRepository = employeeRepository;
+        this.projectRepository = projectRepository;
+        this.technicalSkillsValidator = technicalSkillsValidator;
+        this.employeeQueryDslRepository = employeeQueryDslRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
-    void assignEmployeeToProject(Long employeeId, Long projectId);
+    public List<Employee> getEmployees() {
+        return employeeRepository.findAll();
+    }
 
-    List<Employee> searchEmployeesByName(String name);
+    public Employee getEmployee(Long employeeId) {
+        return employeeRepository.findById(employeeId)
+                .orElseThrow(() -> EmployeeNotFoundException.notFoundById(employeeId));
+    }
 
-    List<Employee> getEmployeesByProject(Long projectId);
+    public void createEmployee(Employee employee) {
+        if(checkEmployeeExists(employee.getEmail())) {
+            throw new IllegalStateException("Cannot create employee, email already taken");
+        }
+        employeeRepository.save(employee);
+    }
 
-    void changePassword(ChangePasswordRequest request, Principal connectedUser);
+    @Transactional
+    public void updateEmployee(Long employeeId, Employee employee) {
+        boolean existingEmployee = employeeRepository.existsById(employeeId);
+        if(!existingEmployee) {
+            throw EmployeeNotFoundException.cannotUpdate();
+        }
+        employee.setId(employeeId);
+        employeeRepository.save(employee);
+    }
+
+    public void deleteEmployee(Long employeeId) {
+        boolean existingEmployee = employeeRepository.existsById(employeeId);
+        if(!existingEmployee) {
+            throw EmployeeNotFoundException.cannotDelete();
+        }
+        employeeRepository.deleteById(employeeId);
+    }
+
+    @Transactional
+    public void removeEmployeeFromProject(Long employeeId, Long projectId) {
+        var employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> EmployeeNotFoundException.notFoundById(employeeId));
+
+        var project = projectRepository.findById(projectId)
+                .orElseThrow(() -> ProjectNotFoundException.notFoundById(projectId));
+
+        employee.getProjects().remove(project);
+        project.getEmployees().remove(employee);
+
+        employeeRepository.save(employee);
+    }
+
+    @Transactional
+    public void assignEmployeeToProject(Long employeeId, Long projectId) {
+        var employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> EmployeeNotFoundException.notFoundById(employeeId));
+
+        var project = projectRepository.findById(projectId)
+                .orElseThrow(() -> ProjectNotFoundException.notFoundById(projectId));
+
+        technicalSkillsValidator.validateTechnicalSkills(employee, project);
+        if (!employee.getProjects().contains(project)) {
+            employee.getProjects().add(project);
+            project.getEmployees().add(employee);
+        }
+
+        employeeRepository.save(employee);
+    }
+
+    public List<Employee> searchEmployeesByName(String name) {
+        return employeeQueryDslRepository.findEmployeesByName(name);
+    }
+
+    public List<Employee> getEmployeesByProject(Long projectId) {
+        return employeeQueryDslRepository.findEmployeesByProject(projectId);
+    }
+
+    public void changePassword(ChangePasswordRequest request, Principal connectedUser) {
+
+        var employee = (Employee) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), employee.getPassword())) {
+            throw new IllegalStateException("Wrong password");
+        }
+        if (!request.getNewPassword().equals(request.getConfirmationPassword())) {
+            throw new IllegalStateException("Password are not the same");
+        }
+
+        employee.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        employeeRepository.save(employee);
+    }
+
+    private boolean checkEmployeeExists(String email) {
+        long checkItemCounts = employeeRepository.countByEmail(email);
+        return checkItemCounts > 0;
+    }
 
 }

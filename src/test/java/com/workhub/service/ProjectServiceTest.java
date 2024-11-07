@@ -38,7 +38,7 @@ class ProjectServiceTest {
     private TechnicalSkillsValidator technicalSkillsValidator;
 
     @InjectMocks
-    private ProjectServiceImpl projectService;
+    private ProjectService projectService;
 
     private Project testProject;
 

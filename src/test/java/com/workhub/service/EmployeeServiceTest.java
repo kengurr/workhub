@@ -35,7 +35,7 @@ class EmployeeServiceTest {
     private TechnicalSkillsValidator technicalSkillsValidator;
 
     @InjectMocks
-    private EmployeeServiceImpl employeeService;
+    private EmployeeService employeeService;
 
     private Employee testEmployee;
 
