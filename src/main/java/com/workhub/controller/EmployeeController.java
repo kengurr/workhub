@@ -31,33 +31,33 @@ public class EmployeeController {
     }
 
     @PostMapping(value = "/")
-    public ResponseEntity<?> createEmployee(@RequestBody Employee employee) {
+    public ResponseEntity<Void> createEmployee(@RequestBody Employee employee) {
         employeeService.createEmployee(employee);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @PutMapping(value = "/{employeeId}")
-    public ResponseEntity<?> updateEmployee(@RequestBody Employee employee,
+    public ResponseEntity<Void> updateEmployee(@RequestBody Employee employee,
                                             @PathVariable(name = "employeeId") Long employeeId) {
         employeeService.updateEmployee(employeeId, employee);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @DeleteMapping(value = "/{employeeId}")
-    public ResponseEntity<?> deleteEmployee(@PathVariable(name = "employeeId") Long employeeId) {
+    public ResponseEntity<Void> deleteEmployee(@PathVariable(name = "employeeId") Long employeeId) {
         employeeService.deleteEmployee(employeeId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PutMapping(value = "/{employeeId}/projects/{projectId}")
-    public ResponseEntity<String> assignEmployeeToProject(
+    public ResponseEntity<Void> assignEmployeeToProject(
             @PathVariable Long employeeId, @PathVariable Long projectId) {
         employeeService.assignEmployeeToProject(employeeId, projectId);
-        return ResponseEntity.ok("Employee assigned to project successfully");
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @DeleteMapping(value = "/{employeeId}/projects/{projectId}")
-    public ResponseEntity<?> removeEmployeeFromProject(@PathVariable(name = "employeeId") Long employeeId,
+    public ResponseEntity<Void> removeEmployeeFromProject(@PathVariable(name = "employeeId") Long employeeId,
                                                        @PathVariable(name = "projectId") Long projectId) {
         employeeService.removeEmployeeFromProject(employeeId, projectId);
         return new ResponseEntity<>(HttpStatus.OK);

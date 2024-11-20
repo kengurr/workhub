@@ -18,6 +18,7 @@
 		<springdoc.version>2.0.4</springdoc.version>
 		<jsonwebtoken.version>0.11.5</jsonwebtoken.version>
 		<jacoco.version>0.8.11</jacoco.version>
+		<liquibase.version>4.30.0</liquibase.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -92,6 +93,11 @@
 			<artifactId>querydsl-apt</artifactId>
 			<version>${querydsl.version}</version>
 			<classifier>jakarta</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.liquibase</groupId>
+			<artifactId>liquibase-core</artifactId>
+			<version>${liquibase.version}</version>
 		</dependency>
 	</dependencies>
 
