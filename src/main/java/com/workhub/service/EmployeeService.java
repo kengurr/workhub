@@ -3,8 +3,8 @@ package com.workhub.service;
 import com.workhub.Utils.TechnicalSkillsValidator;
 import com.workhub.dto.ChangePasswordRequest;
 import com.workhub.entity.Employee;
-import com.workhub.exception.EmployeeNotFoundException;
-import com.workhub.exception.ProjectNotFoundException;
+import com.workhub.exception.ExceptionUtil;
+import com.workhub.exception.WorkhubException;
 import com.workhub.repository.EmployeeQueryDslRepository;
 import com.workhub.repository.EmployeeRepository;
 import com.workhub.repository.ProjectRepository;
@@ -38,18 +38,21 @@ public class EmployeeService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Transactional
     public List<Employee> getEmployees() {
         return employeeRepository.findAll();
     }
 
+    @Transactional
     public Employee getEmployee(Long employeeId) {
         return employeeRepository.findById(employeeId)
-                .orElseThrow(() -> EmployeeNotFoundException.notFoundById(employeeId));
+                .orElseThrow(() -> ExceptionUtil.logAndBuildException(WorkhubException.NOT_FOUND));
     }
 
+    @Transactional
     public void createEmployee(Employee employee) {
         if(checkEmployeeExists(employee.getEmail())) {
-            throw new IllegalStateException("Cannot create employee, email already taken");
+            throw ExceptionUtil.logAndBuildException(WorkhubException.BAD_REQUEST);
         }
         employeeRepository.save(employee);
     }
@@ -58,16 +61,17 @@ public class EmployeeService {
     public void updateEmployee(Long employeeId, Employee employee) {
         boolean existingEmployee = employeeRepository.existsById(employeeId);
         if(!existingEmployee) {
-            throw EmployeeNotFoundException.cannotUpdate();
+            throw ExceptionUtil.logAndBuildException(WorkhubException.NOT_FOUND);
         }
         employee.setId(employeeId);
         employeeRepository.save(employee);
     }
 
+    @Transactional
     public void deleteEmployee(Long employeeId) {
         boolean existingEmployee = employeeRepository.existsById(employeeId);
         if(!existingEmployee) {
-            throw EmployeeNotFoundException.cannotDelete();
+            throw ExceptionUtil.logAndBuildException(WorkhubException.NOT_FOUND);
         }
         employeeRepository.deleteById(employeeId);
     }
@@ -75,10 +79,10 @@ public class EmployeeService {
     @Transactional
     public void removeEmployeeFromProject(Long employeeId, Long projectId) {
         var employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> EmployeeNotFoundException.notFoundById(employeeId));
+                .orElseThrow(() -> ExceptionUtil.logAndBuildException(WorkhubException.NOT_FOUND));
 
         var project = projectRepository.findById(projectId)
-                .orElseThrow(() -> ProjectNotFoundException.notFoundById(projectId));
+                .orElseThrow(() -> ExceptionUtil.logAndBuildException(WorkhubException.NOT_FOUND));
 
         employee.getProjects().remove(project);
         project.getEmployees().remove(employee);
@@ -89,10 +93,10 @@ public class EmployeeService {
     @Transactional
     public void assignEmployeeToProject(Long employeeId, Long projectId) {
         var employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> EmployeeNotFoundException.notFoundById(employeeId));
+                .orElseThrow(() -> ExceptionUtil.logAndBuildException(WorkhubException.NOT_FOUND));
 
         var project = projectRepository.findById(projectId)
-                .orElseThrow(() -> ProjectNotFoundException.notFoundById(projectId));
+                .orElseThrow(() -> ExceptionUtil.logAndBuildException(WorkhubException.NOT_FOUND));
 
         technicalSkillsValidator.validateTechnicalSkills(employee, project);
         if (!employee.getProjects().contains(project)) {

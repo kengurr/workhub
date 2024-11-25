@@ -2,8 +2,8 @@ package com.workhub.service;
 
 import com.workhub.Utils.TechnicalSkillsValidator;
 import com.workhub.entity.Project;
-import com.workhub.exception.EmployeeNotFoundException;
-import com.workhub.exception.ProjectNotFoundException;
+import com.workhub.exception.ExceptionUtil;
+import com.workhub.exception.WorkhubException;
 import com.workhub.repository.EmployeeRepository;
 import com.workhub.repository.ProjectRepository;
 import jakarta.transaction.Transactional;
@@ -29,7 +29,7 @@ public class ProjectService {
 
     public Project getProject(Long projectId) {
         return projectRepository.findById(projectId)
-                .orElseThrow(() -> ProjectNotFoundException.notFoundById(projectId));
+                .orElseThrow(() -> ExceptionUtil.logAndBuildException(WorkhubException.NOT_FOUND));
     }
 
     public List<Project> getProjects() {
@@ -44,7 +44,7 @@ public class ProjectService {
     public void updateProject(Long projectId, Project project) {
         boolean projectExists = projectRepository.existsById(projectId);
         if(!projectExists) {
-            throw ProjectNotFoundException.cannotUpdate();
+            throw ExceptionUtil.logAndBuildException(WorkhubException.NOT_FOUND);
         }
         project.setId(projectId);
         projectRepository.save(project);
@@ -53,7 +53,7 @@ public class ProjectService {
     public void deleteProject(Long projectId) {
         boolean projectExists = projectRepository.existsById(projectId);
         if(!projectExists) {
-            throw ProjectNotFoundException.cannotDelete();
+            throw ExceptionUtil.logAndBuildException(WorkhubException.NOT_FOUND);
         }
         projectRepository.deleteById(projectId);
     }
@@ -61,10 +61,10 @@ public class ProjectService {
     @Transactional
     public void removeProjectFromEmployee(Long projectId, Long employeeId) {
         var project = projectRepository.findById(projectId)
-                .orElseThrow(() -> ProjectNotFoundException.notFoundById(projectId));
+                .orElseThrow(() -> ExceptionUtil.logAndBuildException(WorkhubException.NOT_FOUND));
 
         var employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> EmployeeNotFoundException.notFoundById(employeeId));
+                .orElseThrow(() -> ExceptionUtil.logAndBuildException(WorkhubException.NOT_FOUND));
 
         project.getEmployees().remove(employee);
         employee.getProjects().remove(project);
@@ -75,10 +75,10 @@ public class ProjectService {
     @Transactional
     public void assignProjectToEmployee(Long projectId, Long employeeId) {
         var project = projectRepository.findById(projectId)
-                .orElseThrow(() -> ProjectNotFoundException.notFoundById(projectId));
+                .orElseThrow(() -> ExceptionUtil.logAndBuildException(WorkhubException.NOT_FOUND));
 
         var employee = employeeRepository.findById(employeeId)
-                .orElseThrow(() -> EmployeeNotFoundException.notFoundById(employeeId));
+                .orElseThrow(() -> ExceptionUtil.logAndBuildException(WorkhubException.NOT_FOUND));
 
         technicalSkillsValidator.validateTechnicalSkills(employee, project);
         if (!project.getEmployees().contains(employee)) {

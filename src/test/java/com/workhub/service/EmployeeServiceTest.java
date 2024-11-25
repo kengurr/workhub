@@ -5,9 +5,7 @@ import com.workhub.entity.Employee;
 import com.workhub.entity.Project;
 import com.workhub.dto.Role;
 import com.workhub.dto.Technology;
-import com.workhub.exception.EmployeeNotFoundException;
-import com.workhub.exception.ProjectNotFoundException;
-import com.workhub.exception.TechnicalSkillsException;
+import com.workhub.exception.ServiceProcessingException;
 import com.workhub.repository.EmployeeRepository;
 import com.workhub.repository.ProjectRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -68,7 +66,7 @@ class EmployeeServiceTest {
     void getEmployee_whenEmployeeDoesNotExist() {
         when(employeeRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(EmployeeNotFoundException.class, () ->
+        assertThrows(ServiceProcessingException.class, () ->
             employeeService.getEmployee(testEmployee.getId()));
 
         verify(employeeRepository, times(1)).findById(1L);
@@ -85,7 +83,7 @@ class EmployeeServiceTest {
     void createEmployee_WhenEmailIsNotUnique_ShouldThrowException() {
         when(employeeRepository.countByEmail(testEmployee.getEmail())).thenReturn(1L);
 
-        assertThrows(IllegalStateException.class, () -> employeeService.createEmployee(testEmployee));
+        assertThrows(ServiceProcessingException.class, () -> employeeService.createEmployee(testEmployee));
 
         verify(employeeRepository, never()).save(any());
     }
@@ -103,7 +101,7 @@ class EmployeeServiceTest {
     void updateEmployee_WhenEmployeeDoesNotExist_ShouldThrowException() {
         when(employeeRepository.existsById(testEmployee.getId())).thenReturn(false);
 
-        assertThrows(EmployeeNotFoundException.class,
+        assertThrows(ServiceProcessingException.class,
                 () -> employeeService.updateEmployee(testEmployee.getId(), testEmployee));
 
         verify(employeeRepository, never()).save(any());
@@ -122,7 +120,7 @@ class EmployeeServiceTest {
     void deleteEmployee_WhenEmployeeDoesNotExist_ShouldThrowException() {
         when(employeeRepository.existsById(testEmployee.getId())).thenReturn(false);
 
-        assertThrows(EmployeeNotFoundException.class,
+        assertThrows(ServiceProcessingException.class,
                 () -> employeeService.deleteEmployee(testEmployee.getId()));
 
         verify(employeeRepository, never()).deleteById(any());
@@ -143,7 +141,7 @@ class EmployeeServiceTest {
     void removeEmployeeForProject_WhenEmployeeNotFound_ShouldThrowException() {
         when(employeeRepository.findById(testEmployee.getId())).thenReturn(Optional.empty());
 
-        assertThrows(EmployeeNotFoundException.class,
+        assertThrows(ServiceProcessingException.class,
                 () -> employeeService.removeEmployeeFromProject(testEmployee.getId(), testProject.getId()));
 
         verify(employeeRepository, never()).save(any());
@@ -154,7 +152,7 @@ class EmployeeServiceTest {
         when(employeeRepository.findById(testEmployee.getId())).thenReturn(Optional.of(new Employee(testEmployee.getName(), testEmployee.getEmail())));
         when(projectRepository.findById(testProject.getId())).thenReturn(Optional.empty());
 
-        assertThrows(ProjectNotFoundException.class,
+        assertThrows(ServiceProcessingException.class,
                 () -> employeeService.removeEmployeeFromProject(testEmployee.getId(), testProject.getId()));
 
         verify(employeeRepository, never()).save(any());
@@ -175,7 +173,7 @@ class EmployeeServiceTest {
     void assignEmployeeToProject_WhenEmployeeNotFound_ShouldThrowException() {
         when(employeeRepository.findById(testEmployee.getId())).thenReturn(Optional.empty());
 
-        assertThrows(EmployeeNotFoundException.class,
+        assertThrows(ServiceProcessingException.class,
                 () -> employeeService.assignEmployeeToProject(testEmployee.getId(), testProject.getId()));
 
         verify(employeeRepository, never()).save(any());
@@ -186,7 +184,7 @@ class EmployeeServiceTest {
         when(employeeRepository.findById(testEmployee.getId())).thenReturn(Optional.of(new Employee(testEmployee.getName(), testEmployee.getEmail())));
         when(projectRepository.findById(testProject.getId())).thenReturn(Optional.empty());
 
-        assertThrows(ProjectNotFoundException.class,
+        assertThrows(ServiceProcessingException.class,
                 () -> employeeService.assignEmployeeToProject(testEmployee.getId(), testProject.getId()));
 
         verify(employeeRepository, never()).save(any());
@@ -197,11 +195,11 @@ class EmployeeServiceTest {
         when(employeeRepository.findById(testEmployee.getId())).thenReturn(Optional.of(testEmployee));
         when(projectRepository.findById(testProject.getId())).thenReturn(Optional.of(testProject));
 
-        doThrow(TechnicalSkillsException.class)
+        doThrow(ServiceProcessingException.class)
                 .when(technicalSkillsValidator).validateTechnicalSkills(testEmployee, testProject);
 
 
-        assertThrows(TechnicalSkillsException.class,
+        assertThrows(ServiceProcessingException.class,
                 () -> employeeService.assignEmployeeToProject(testEmployee.getId(), testProject.getId()));
 
         verify(employeeRepository, never()).save(any());
