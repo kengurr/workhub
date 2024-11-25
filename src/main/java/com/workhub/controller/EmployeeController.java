@@ -1,7 +1,7 @@
 package com.workhub.controller;
 
 import com.workhub.dto.ChangePasswordRequest;
-import com.workhub.entity.Employee;
+import com.workhub.dto.EmployeeDto;
 import com.workhub.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,33 +20,39 @@ public class EmployeeController {
 
     private final EmployeeService employeeService;
 
-    @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = "/")
-    public List<Employee> getEmployees() {
+    @GetMapping
+    public ResponseEntity<List<EmployeeDto>> getEmployees() {
         log.info("Received request to get list of employees");
-        return employeeService.getEmployees();
+        var employees = employeeService.getEmployees();
+
+        return employees.isEmpty()
+                ? new ResponseEntity<>(HttpStatus.NO_CONTENT)
+                : new ResponseEntity<>(employees, HttpStatus.OK);
     }
 
-    @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = "/{employeeId}")
-    public Employee getEmployee(@PathVariable(name = "employeeId") Long employeeId) {
+    @GetMapping("/{employeeId}")
+    public ResponseEntity<EmployeeDto> getEmployee(@PathVariable Long employeeId) {
         log.info("Received request to get employee - employeeId: {}", employeeId);
-        return employeeService.getEmployee(employeeId);
+        var employee = employeeService.getEmployee(employeeId);
+
+        return employee == null
+                ? new ResponseEntity<>(HttpStatus.NOT_FOUND)
+                : new ResponseEntity<>(employee, HttpStatus.OK);
     }
 
     @PostMapping(value = "/")
-    public ResponseEntity<Void> createEmployee(@RequestBody Employee employee) {
-        log.info("Received request to create employee");
-        employeeService.createEmployee(employee);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+    public ResponseEntity<Void> createEmployee(@RequestBody EmployeeDto employeeDto) {
+        employeeService.createEmployee(employeeDto);
+            log.info("Received request to create employee");
+            return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @PutMapping(value = "/{employeeId}")
-    public ResponseEntity<Void> updateEmployee(@RequestBody Employee employee,
+    public ResponseEntity<Void> updateEmployee(@RequestBody EmployeeDto employeeDto,
                                             @PathVariable(name = "employeeId") Long employeeId) {
+        employeeService.updateEmployee(employeeId, employeeDto);
         log.info("Received request to update employee - employeeId: {}", employeeId);
-        employeeService.updateEmployee(employeeId, employee);
-        return new ResponseEntity<>(HttpStatus.CREATED);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @DeleteMapping(value = "/{employeeId}")
@@ -73,22 +79,21 @@ public class EmployeeController {
     }
 
     @GetMapping("/search-by-name")
-    public List<Employee> searchEmployeesByName(@RequestParam(name = "name") String name) {
-        log.info("Received request to search for employee by name- name: {}", name);
-        return employeeService.searchEmployeesByName(name);
+    public List<EmployeeDto> searchEmployeesByName(@RequestParam(name = "name") String name) {
+            log.info("Received request to search for employee by name- name: {}", name);
+            return employeeService.searchEmployeesByName(name);
     }
 
     @GetMapping("/by-project/{projectId}")
-    public List<Employee> getEmployeesByProject(@PathVariable(name = "projectId") Long projectId) {
-        log.info("Received request to get employee by project - projectId: {}", projectId);
-        return employeeService.getEmployeesByProject(projectId);
+    public List<EmployeeDto> getEmployeesByProject(@PathVariable(name = "projectId") Long projectId) {
+            log.info("Received request to get employee by project - projectId: {}", projectId);
+            return employeeService.getEmployeesByProject(projectId);
     }
 
     @PatchMapping("/change-password")
-    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest request, Principal connectedUser) {
-        log.info("Received request to change password for employee - connectedUser: {}", connectedUser.getName());
-        employeeService.changePassword(request, connectedUser);
+    public ResponseEntity<Void> changePassword(@RequestBody ChangePasswordRequest request, Principal connectedUser) {
+            log.info("Received request to change password for employee - connectedUser: {}", connectedUser.getName());
+            employeeService.changePassword(request, connectedUser);
         return ResponseEntity.ok().build();
     }
-
 }

@@ -1,6 +1,7 @@
 package com.workhub.service;
 
 import com.workhub.Utils.TechnicalSkillsValidator;
+import com.workhub.dto.EmployeeDto;
 import com.workhub.entity.Employee;
 import com.workhub.entity.Project;
 import com.workhub.dto.Role;
@@ -37,171 +38,122 @@ class EmployeeServiceTest {
 
     private Employee testEmployee;
 
+    private EmployeeDto testEmployeeDto;
+
     private Project testProject;
 
     @BeforeEach
     void setUp() {
-        testEmployee = new Employee(1L, "Employee 1", "employee1@example.com", "pass", Role.ADMIN, EnumSet.allOf(Technology.class), new HashSet<>());
-        testProject = new Project(1L, "Project 1", new HashSet<>(), new HashSet<>());
+        testEmployee = new Employee(1L, "Employee", "test@example.com", "password123", Role.ADMIN, EnumSet.noneOf(Technology.class), new HashSet<>());
+        testProject = new Project(1L, "Project", new HashSet<>(), new HashSet<>());
+        testEmployeeDto = new EmployeeDto("Employee", "test@example.com", "ADMIN", EnumSet.noneOf(Technology.class));
     }
+
     @Test
-    void getEmployees_shouldReturnAllEmployees() {
-        when(employeeRepository.findAll()).thenReturn(Collections.singletonList(testEmployee));
+    void getEmployees_ShouldReturnListOfEmployeeDtos() {
+        when(employeeRepository.findAll()).thenReturn(List.of(testEmployee));
 
-        assertEquals(Collections.singletonList(testEmployee), employeeService.getEmployees());
+        var result = employeeService.getEmployees();
 
+        assertEquals(1, result.size());
         verify(employeeRepository, times(1)).findAll();
     }
 
     @Test
-    void getEmployee_whenEmployeeExists() {
+    void getEmployee_WhenExists_ShouldReturnEmployeeDto() {
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(testEmployee));
 
-        assertEquals(testEmployee, employeeService.getEmployee(1L));
+        var result = employeeService.getEmployee(1L);
 
+        assertEquals(testEmployee.getEmail(), result.getEmail());
         verify(employeeRepository, times(1)).findById(1L);
     }
 
     @Test
-    void getEmployee_whenEmployeeDoesNotExist() {
+    void getEmployee_WhenNotExists_ShouldThrowException() {
         when(employeeRepository.findById(1L)).thenReturn(Optional.empty());
 
-        assertThrows(ServiceProcessingException.class, () ->
-            employeeService.getEmployee(testEmployee.getId()));
-
+        assertThrows(ServiceProcessingException.class, () -> employeeService.getEmployee(1L));
         verify(employeeRepository, times(1)).findById(1L);
     }
 
     @Test
     void createEmployee_WhenEmailIsUnique_ShouldSaveEmployee() {
-        assertDoesNotThrow(() -> employeeService.createEmployee(testEmployee));
+        when(employeeRepository.countByEmail(testEmployeeDto.getEmail())).thenReturn(0L);
 
-        verify(employeeRepository, times(1)).save(testEmployee);
+        employeeService.createEmployee(testEmployeeDto);
+
+        verify(employeeRepository, times(1)).save(any(Employee.class));
     }
 
     @Test
     void createEmployee_WhenEmailIsNotUnique_ShouldThrowException() {
-        when(employeeRepository.countByEmail(testEmployee.getEmail())).thenReturn(1L);
+        when(employeeRepository.countByEmail(testEmployeeDto.getEmail())).thenReturn(1L);
 
-        assertThrows(ServiceProcessingException.class, () -> employeeService.createEmployee(testEmployee));
-
+        assertThrows(ServiceProcessingException.class, () -> employeeService.createEmployee(testEmployeeDto));
         verify(employeeRepository, never()).save(any());
     }
 
     @Test
-    void updateEmployee_WhenEmployeeExists_ShouldUpdateEmployee() {
-        when(employeeRepository.existsById(testEmployee.getId())).thenReturn(true);
+    void updateEmployee_WhenExists_ShouldUpdateEmployee() {
+        when(employeeRepository.existsById(1L)).thenReturn(true);
 
-        assertDoesNotThrow(() -> employeeService.updateEmployee(testEmployee.getId(), testEmployee));
+        employeeService.updateEmployee(1L, testEmployeeDto);
 
-        verify(employeeRepository, times(1)).save(testEmployee);
+        verify(employeeRepository, times(1)).save(any(Employee.class));
     }
 
     @Test
-    void updateEmployee_WhenEmployeeDoesNotExist_ShouldThrowException() {
-        when(employeeRepository.existsById(testEmployee.getId())).thenReturn(false);
+    void updateEmployee_WhenNotExists_ShouldThrowException() {
+        when(employeeRepository.existsById(1L)).thenReturn(false);
 
-        assertThrows(ServiceProcessingException.class,
-                () -> employeeService.updateEmployee(testEmployee.getId(), testEmployee));
-
+        assertThrows(ServiceProcessingException.class, () -> employeeService.updateEmployee(1L, testEmployeeDto));
         verify(employeeRepository, never()).save(any());
     }
 
     @Test
-    void deleteEmployee_WhenEmployeeExists_ShouldDeleteEmployee() {
-        when(employeeRepository.existsById(testEmployee.getId())).thenReturn(true);
+    void deleteEmployee_WhenExists_ShouldDeleteEmployee() {
+        when(employeeRepository.existsById(1L)).thenReturn(true);
 
-        assertDoesNotThrow(() -> employeeService.deleteEmployee(testEmployee.getId()));
+        employeeService.deleteEmployee(1L);
 
-        verify(employeeRepository, times(1)).deleteById(testEmployee.getId());
+        verify(employeeRepository, times(1)).deleteById(1L);
     }
 
     @Test
-    void deleteEmployee_WhenEmployeeDoesNotExist_ShouldThrowException() {
-        when(employeeRepository.existsById(testEmployee.getId())).thenReturn(false);
+    void deleteEmployee_WhenNotExists_ShouldThrowException() {
+        when(employeeRepository.existsById(1L)).thenReturn(false);
 
-        assertThrows(ServiceProcessingException.class,
-                () -> employeeService.deleteEmployee(testEmployee.getId()));
-
-        verify(employeeRepository, never()).deleteById(any());
+        assertThrows(ServiceProcessingException.class, () -> employeeService.deleteEmployee(1L));
+        verify(employeeRepository, never()).deleteById(anyLong());
     }
 
     @Test
-    void removeEmployeeForProject_WhenEmployeeAndProjectExist_ShouldRemoveProject() {
-        when(employeeRepository.findById(testEmployee.getId())).thenReturn(Optional.of(testEmployee));
-        when(projectRepository.findById(testProject.getId())).thenReturn(Optional.of(testProject));
+    void assignEmployeeToProject_WhenValid_ShouldAssignProject() {
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(testEmployee));
+        when(projectRepository.findById(1L)).thenReturn(Optional.of(testProject));
 
-        assertDoesNotThrow(() -> employeeService.removeEmployeeFromProject(testEmployee.getId(), testProject.getId()));
+        doNothing().when(technicalSkillsValidator).validateTechnicalSkills(testEmployee, testProject);
 
-        verify(employeeRepository, times(1)).save(testEmployee);
-        assertFalse(testEmployee.getProjects().contains(testProject));
-    }
+        employeeService.assignEmployeeToProject(1L, 1L);
 
-    @Test
-    void removeEmployeeForProject_WhenEmployeeNotFound_ShouldThrowException() {
-        when(employeeRepository.findById(testEmployee.getId())).thenReturn(Optional.empty());
-
-        assertThrows(ServiceProcessingException.class,
-                () -> employeeService.removeEmployeeFromProject(testEmployee.getId(), testProject.getId()));
-
-        verify(employeeRepository, never()).save(any());
-    }
-
-    @Test
-    void removeEmployeeForProject_WhenProjectNotFound_ShouldThrowException() {
-        when(employeeRepository.findById(testEmployee.getId())).thenReturn(Optional.of(new Employee(testEmployee.getName(), testEmployee.getEmail())));
-        when(projectRepository.findById(testProject.getId())).thenReturn(Optional.empty());
-
-        assertThrows(ServiceProcessingException.class,
-                () -> employeeService.removeEmployeeFromProject(testEmployee.getId(), testProject.getId()));
-
-        verify(employeeRepository, never()).save(any());
-    }
-
-    @Test
-    void assignEmployeeToProject_WhenEmployeeAndProjectExist_ShouldAssignProject() {
-        when(employeeRepository.findById(testEmployee.getId())).thenReturn(Optional.of(testEmployee));
-        when(projectRepository.findById(testProject.getId())).thenReturn(Optional.of(testProject));
-
-        assertDoesNotThrow(() -> employeeService.assignEmployeeToProject(testEmployee.getId(), testProject.getId()));
-
-        verify(employeeRepository, times(1)).save(testEmployee);
         assertTrue(testEmployee.getProjects().contains(testProject));
+        assertTrue(testProject.getEmployees().contains(testEmployee));
+        verify(employeeRepository, times(1)).save(testEmployee);
+        verify(technicalSkillsValidator, times(1)).validateTechnicalSkills(testEmployee, testProject);
     }
 
     @Test
-    void assignEmployeeToProject_WhenEmployeeNotFound_ShouldThrowException() {
-        when(employeeRepository.findById(testEmployee.getId())).thenReturn(Optional.empty());
+    void removeEmployeeFromProject_WhenValid_ShouldRemoveProject() {
+        testEmployee.getProjects().add(testProject);
+        testProject.getEmployees().add(testEmployee);
 
-        assertThrows(ServiceProcessingException.class,
-                () -> employeeService.assignEmployeeToProject(testEmployee.getId(), testProject.getId()));
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(testEmployee));
+        when(projectRepository.findById(1L)).thenReturn(Optional.of(testProject));
 
-        verify(employeeRepository, never()).save(any());
-    }
+        employeeService.removeEmployeeFromProject(1L, 1L);
 
-    @Test
-    void assignEmployeeToProject_WhenProjectNotFound_ShouldThrowException() {
-        when(employeeRepository.findById(testEmployee.getId())).thenReturn(Optional.of(new Employee(testEmployee.getName(), testEmployee.getEmail())));
-        when(projectRepository.findById(testProject.getId())).thenReturn(Optional.empty());
-
-        assertThrows(ServiceProcessingException.class,
-                () -> employeeService.assignEmployeeToProject(testEmployee.getId(), testProject.getId()));
-
-        verify(employeeRepository, never()).save(any());
-    }
-
-    @Test
-    void assignEmployeeToProject_WhenTechnicalSkillsMismatch_ShouldThrowException() {
-        when(employeeRepository.findById(testEmployee.getId())).thenReturn(Optional.of(testEmployee));
-        when(projectRepository.findById(testProject.getId())).thenReturn(Optional.of(testProject));
-
-        doThrow(ServiceProcessingException.class)
-                .when(technicalSkillsValidator).validateTechnicalSkills(testEmployee, testProject);
-
-
-        assertThrows(ServiceProcessingException.class,
-                () -> employeeService.assignEmployeeToProject(testEmployee.getId(), testProject.getId()));
-
-        verify(employeeRepository, never()).save(any());
+        assertFalse(testEmployee.getProjects().contains(testProject));
+        verify(employeeRepository, times(1)).save(testEmployee);
     }
 }

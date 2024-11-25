@@ -19,6 +19,7 @@
 		<jsonwebtoken.version>0.11.5</jsonwebtoken.version>
 		<jacoco.version>0.8.11</jacoco.version>
 		<liquibase.version>4.30.0</liquibase.version>
+		<mapstruct.version>1.5.5.FINAL</mapstruct.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -99,6 +100,16 @@
 			<artifactId>liquibase-core</artifactId>
 			<version>${liquibase.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.mapstruct</groupId>
+			<artifactId>mapstruct</artifactId>
+			<version>${mapstruct.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.mapstruct</groupId>
+			<artifactId>mapstruct-processor</artifactId>
+			<version>${mapstruct.version}</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -152,8 +163,11 @@
 							<goal>process</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>target/generated-sources/java</outputDirectory>
-							<processor>com.mysema.query.apt.jpa.JPAAnnotationProcessor</processor>
+							<outputDirectory>target/generated-sources/annotations</outputDirectory>
+							<processors>
+								<processor>org.mapstruct.ap.MappingProcessor</processor>
+								<processor>com.querydsl.apt.jpa.JPAAnnotationProcessor</processor>
+							</processors>
 						</configuration>
 					</execution>
 				</executions>
