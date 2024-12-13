@@ -26,9 +26,9 @@ databaseChangeLog:
               - column:
                   name: id
                   type: BIGINT
-                  autoIncrement: true
                   constraints:
                     primaryKey: true
+                  defaultValueComputed: "nextval('employee_id_seq')"
               - column:
                   name: name
                   type: VARCHAR(255)
@@ -45,22 +45,24 @@ databaseChangeLog:
                   type: VARCHAR(255)
               - column:
                   name: role
-                  type: VARCHAR(50)
-              - column:
-                  name: technical_skill
                   type: VARCHAR(255)
               - column:
+                  name: technical_skill
+                  type: VARCHAR[]
+              - column:
                   name: created_date
-                  type: timestamp
+                  type: TIMESTAMP(6)
+                  defaultValueComputed: CURRENT_TIMESTAMP
               - column:
                   name: last_modified_date
-                  type: timestamp
+                  type: TIMESTAMP(6)
+                  defaultValueComputed: CURRENT_TIMESTAMP
               - column:
                   name: created_by
-                  type: varchar(255)
+                  type: VARCHAR(255)
               - column:
                   name: last_modified_by
-                  type: varchar(255)
+                  type: VARCHAR(255)
 
   - changeSet:
       id: 3
@@ -72,9 +74,9 @@ databaseChangeLog:
               - column:
                   name: id
                   type: BIGINT
-                  autoIncrement: true
                   constraints:
                     primaryKey: true
+                  defaultValueComputed: "nextval('project_id_seq')"
               - column:
                   name: name
                   type: VARCHAR(255)
@@ -82,19 +84,21 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: technology
-                  type: VARCHAR(255)
+                  type: VARCHAR[]
               - column:
                   name: created_date
-                  type: timestamp
+                  type: TIMESTAMP(6)
+                  defaultValueComputed: CURRENT_TIMESTAMP
               - column:
                   name: last_modified_date
-                  type: timestamp
+                  type: TIMESTAMP(6)
+                  defaultValueComputed: CURRENT_TIMESTAMP
               - column:
                   name: created_by
-                  type: varchar(255)
+                  type: VARCHAR(255)
               - column:
                   name: last_modified_by
-                  type: varchar(255)
+                  type: VARCHAR(255)
 
   - changeSet:
       id: 4
@@ -106,9 +110,9 @@ databaseChangeLog:
               - column:
                   name: id
                   type: BIGINT
-                  autoIncrement: true
                   constraints:
                     primaryKey: true
+                  defaultValueComputed: "nextval('tokens_seq')"
               - column:
                   name: token
                   type: VARCHAR(255)

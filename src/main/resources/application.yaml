@@ -3,6 +3,9 @@ spring:
     url: jdbc:postgresql://localhost:5432/workhub
     username: postgres
     password: admin
+  liquibase:
+    change-log: classpath:db/changelog-master.yaml
+    enabled: true
   jpa:
     hibernate:
       ddl-auto: validate
@@ -10,12 +13,8 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
   main:
     allow-bean-definition-overriding: true
-  liquibase:
-    change-log: classpath:db/changelog-master.yaml
-    enabled: false
 
 server:
   error:

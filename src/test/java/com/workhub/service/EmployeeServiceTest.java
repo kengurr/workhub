@@ -7,6 +7,7 @@ import com.workhub.entity.Project;
 import com.workhub.dto.Role;
 import com.workhub.dto.Technology;
 import com.workhub.exception.ServiceProcessingException;
+import com.workhub.mapper.EmployeeMapper;
 import com.workhub.repository.EmployeeRepository;
 import com.workhub.repository.ProjectRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,6 +34,9 @@ class EmployeeServiceTest {
     @Mock
     private TechnicalSkillsValidator technicalSkillsValidator;
 
+    @Mock
+    private EmployeeMapper employeeMapper;
+
     @InjectMocks
     private EmployeeService employeeService;
 
@@ -46,7 +50,7 @@ class EmployeeServiceTest {
     void setUp() {
         testEmployee = new Employee(1L, "Employee", "test@example.com", "password123", Role.ADMIN, EnumSet.noneOf(Technology.class), new HashSet<>());
         testProject = new Project(1L, "Project", new HashSet<>(), new HashSet<>());
-        testEmployeeDto = new EmployeeDto("Employee", "test@example.com", "ADMIN", EnumSet.noneOf(Technology.class));
+        testEmployeeDto = new EmployeeDto("Employee", "test@example.com", Role.ADMIN, EnumSet.noneOf(Technology.class));
     }
 
     @Test
@@ -62,6 +66,7 @@ class EmployeeServiceTest {
     @Test
     void getEmployee_WhenExists_ShouldReturnEmployeeDto() {
         when(employeeRepository.findById(1L)).thenReturn(Optional.of(testEmployee));
+        when(employeeMapper.employeeToEmployeeDTO(testEmployee)).thenReturn(testEmployeeDto);
 
         var result = employeeService.getEmployee(1L);
 
@@ -80,6 +85,8 @@ class EmployeeServiceTest {
     @Test
     void createEmployee_WhenEmailIsUnique_ShouldSaveEmployee() {
         when(employeeRepository.countByEmail(testEmployeeDto.getEmail())).thenReturn(0L);
+        when(employeeMapper.employeeDTOToEmployee(testEmployeeDto)).thenReturn(testEmployee);
+
 
         employeeService.createEmployee(testEmployeeDto);
 
@@ -91,21 +98,24 @@ class EmployeeServiceTest {
         when(employeeRepository.countByEmail(testEmployeeDto.getEmail())).thenReturn(1L);
 
         assertThrows(ServiceProcessingException.class, () -> employeeService.createEmployee(testEmployeeDto));
+
         verify(employeeRepository, never()).save(any());
+        verify(employeeMapper, never()).employeeDTOToEmployee(any());
     }
 
     @Test
     void updateEmployee_WhenExists_ShouldUpdateEmployee() {
-        when(employeeRepository.existsById(1L)).thenReturn(true);
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(testEmployee));
+        doNothing().when(employeeMapper).updateEmployeeFromDTO(testEmployeeDto, testEmployee);
 
         employeeService.updateEmployee(1L, testEmployeeDto);
 
-        verify(employeeRepository, times(1)).save(any(Employee.class));
+        verify(employeeRepository, times(1)).save(testEmployee);
     }
 
     @Test
     void updateEmployee_WhenNotExists_ShouldThrowException() {
-        when(employeeRepository.existsById(1L)).thenReturn(false);
+        when(employeeRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThrows(ServiceProcessingException.class, () -> employeeService.updateEmployee(1L, testEmployeeDto));
         verify(employeeRepository, never()).save(any());
@@ -113,19 +123,19 @@ class EmployeeServiceTest {
 
     @Test
     void deleteEmployee_WhenExists_ShouldDeleteEmployee() {
-        when(employeeRepository.existsById(1L)).thenReturn(true);
+        when(employeeRepository.findById(1L)).thenReturn(Optional.of(testEmployee));
 
         employeeService.deleteEmployee(1L);
 
-        verify(employeeRepository, times(1)).deleteById(1L);
+        verify(employeeRepository, times(1)).delete(testEmployee);
     }
 
     @Test
     void deleteEmployee_WhenNotExists_ShouldThrowException() {
-        when(employeeRepository.existsById(1L)).thenReturn(false);
+        when(employeeRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThrows(ServiceProcessingException.class, () -> employeeService.deleteEmployee(1L));
-        verify(employeeRepository, never()).deleteById(anyLong());
+        verify(employeeRepository, never()).delete(any());
     }
 
     @Test

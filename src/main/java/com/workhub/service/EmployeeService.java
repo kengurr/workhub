@@ -7,7 +7,6 @@ import com.workhub.entity.Employee;
 import com.workhub.exception.ExceptionUtil;
 import com.workhub.exception.WorkhubException;
 import com.workhub.mapper.EmployeeMapper;
-import com.workhub.repository.EmployeeQueryDslRepository;
 import com.workhub.repository.EmployeeRepository;
 import com.workhub.repository.ProjectRepository;
 import jakarta.transaction.Transactional;
@@ -28,57 +27,58 @@ public class EmployeeService {
 
     private final TechnicalSkillsValidator technicalSkillsValidator;
   
-    private final EmployeeQueryDslRepository employeeQueryDslRepository;
-
     private final PasswordEncoder passwordEncoder;
 
+    private final EmployeeMapper employeeMapper;
+
     public EmployeeService(EmployeeRepository employeeRepository,
-                           ProjectRepository projectRepository, TechnicalSkillsValidator technicalSkillsValidator, EmployeeQueryDslRepository employeeQueryDslRepository, PasswordEncoder passwordEncoder) {
+                           ProjectRepository projectRepository, TechnicalSkillsValidator technicalSkillsValidator, PasswordEncoder passwordEncoder, EmployeeMapper employeeMapper) {
         this.employeeRepository = employeeRepository;
         this.projectRepository = projectRepository;
         this.technicalSkillsValidator = technicalSkillsValidator;
-        this.employeeQueryDslRepository = employeeQueryDslRepository;
         this.passwordEncoder = passwordEncoder;
+        this.employeeMapper = employeeMapper;
     }
 
     public List<EmployeeDto> getEmployees() {
-        return employeeRepository.findAll().stream()
-                .map(EmployeeMapper.INSTANCE::employeeToEmployeeDTO)
+        var employees = employeeRepository.findAll();
+        if (employees.isEmpty()) {
+            throw ExceptionUtil.logAndBuildException(WorkhubException.NOT_FOUND);
+        }
+        return employees.stream()
+                .map(employeeMapper::employeeToEmployeeDTO)
                 .toList();
     }
 
     public EmployeeDto getEmployee(Long employeeId) {
         var employee = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> ExceptionUtil.logAndBuildException(WorkhubException.NOT_FOUND));
-        return EmployeeMapper.INSTANCE.employeeToEmployeeDTO(employee);
+        return employeeMapper.employeeToEmployeeDTO(employee);
     }
 
     public void createEmployee(EmployeeDto employeeDto) {
-        var employee = EmployeeMapper.INSTANCE.employeeDTOToEmployee(employeeDto);
-        if(checkEmployeeExists(employee.getEmail())) {
+        if(checkEmployeeExists(employeeDto.getEmail())) {
             throw ExceptionUtil.logAndBuildException(WorkhubException.BAD_REQUEST);
         }
+        var employee = employeeMapper.employeeDTOToEmployee(employeeDto);
+
         employeeRepository.save(employee);
     }
 
     public void updateEmployee(Long employeeId, EmployeeDto employeeDto) {
-        boolean existingEmployee = employeeRepository.existsById(employeeId);
-        if(!existingEmployee) {
-            throw ExceptionUtil.logAndBuildException(WorkhubException.NOT_FOUND);
-        }
-        var employee = EmployeeMapper.INSTANCE.employeeDTOToEmployee(employeeDto);
-        employee.setId(employeeId);
+        var existingEmployee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> ExceptionUtil.logAndBuildException(WorkhubException.NOT_FOUND));
 
-        employeeRepository.save(employee);
+        employeeMapper.updateEmployeeFromDTO(employeeDto, existingEmployee);
+
+        employeeRepository.save(existingEmployee);
     }
 
     public void deleteEmployee(Long employeeId) {
-        boolean existingEmployee = employeeRepository.existsById(employeeId);
-        if(!existingEmployee) {
-            throw ExceptionUtil.logAndBuildException(WorkhubException.NOT_FOUND);
-        }
+        var employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> ExceptionUtil.logAndBuildException(WorkhubException.NOT_FOUND));
 
-        employeeRepository.deleteById(employeeId);
+        employeeRepository.delete(employee);
     }
 
     public void removeEmployeeFromProject(Long employeeId, Long projectId) {
@@ -111,13 +111,13 @@ public class EmployeeService {
     }
 
     public List<EmployeeDto> searchEmployeesByName(String name) {
-        var employees = employeeQueryDslRepository.findEmployeesByName(name);
-        return EmployeeMapper.INSTANCE.employeesToEmployeeDTOs(employees);
+        var employees = employeeRepository.findEmployeesByName(name);
+        return employeeMapper.employeesToEmployeeDTOs(employees);
     }
 
     public List<EmployeeDto> getEmployeesByProject(Long projectId) {
-        var employees = employeeQueryDslRepository.findEmployeesByProject(projectId);
-        return EmployeeMapper.INSTANCE.employeesToEmployeeDTOs(employees);
+        var employees = employeeRepository.findEmployeesByProject(projectId);
+        return employeeMapper.employeesToEmployeeDTOs(employees);
     }
 
     public void changePassword(ChangePasswordRequest request, Principal connectedUser) {

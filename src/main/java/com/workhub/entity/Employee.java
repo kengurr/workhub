@@ -1,7 +1,6 @@
 package com.workhub.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.workhub.dto.Auditable;
 import com.workhub.dto.Role;
 import com.workhub.dto.Technology;
 import jakarta.persistence.*;

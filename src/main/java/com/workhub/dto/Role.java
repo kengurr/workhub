@@ -1,6 +1,5 @@
 package com.workhub.dto;
 
-import com.workhub.dto.Permission;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;

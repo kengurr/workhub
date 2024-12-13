@@ -3,6 +3,7 @@ package com.workhub.controller;
 import com.workhub.dto.ChangePasswordRequest;
 import com.workhub.dto.EmployeeDto;
 import com.workhub.service.EmployeeService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -25,9 +26,7 @@ public class EmployeeController {
         log.info("Received request to get list of employees");
         var employees = employeeService.getEmployees();
 
-        return employees.isEmpty()
-                ? new ResponseEntity<>(HttpStatus.NO_CONTENT)
-                : new ResponseEntity<>(employees, HttpStatus.OK);
+        return new ResponseEntity<>(employees, HttpStatus.OK);
     }
 
     @GetMapping("/{employeeId}")
@@ -35,20 +34,18 @@ public class EmployeeController {
         log.info("Received request to get employee - employeeId: {}", employeeId);
         var employee = employeeService.getEmployee(employeeId);
 
-        return employee == null
-                ? new ResponseEntity<>(HttpStatus.NOT_FOUND)
-                : new ResponseEntity<>(employee, HttpStatus.OK);
+        return new ResponseEntity<>(employee, HttpStatus.OK);
     }
 
     @PostMapping(value = "/")
-    public ResponseEntity<Void> createEmployee(@RequestBody EmployeeDto employeeDto) {
+    public ResponseEntity<Void> createEmployee(@RequestBody @Valid EmployeeDto employeeDto) {
         employeeService.createEmployee(employeeDto);
             log.info("Received request to create employee");
             return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @PutMapping(value = "/{employeeId}")
-    public ResponseEntity<Void> updateEmployee(@RequestBody EmployeeDto employeeDto,
+    public ResponseEntity<Void> updateEmployee(@RequestBody @Valid EmployeeDto employeeDto,
                                             @PathVariable(name = "employeeId") Long employeeId) {
         employeeService.updateEmployee(employeeId, employeeDto);
         log.info("Received request to update employee - employeeId: {}", employeeId);
@@ -91,7 +88,7 @@ public class EmployeeController {
     }
 
     @PatchMapping("/change-password")
-    public ResponseEntity<Void> changePassword(@RequestBody ChangePasswordRequest request, Principal connectedUser) {
+    public ResponseEntity<Void> changePassword(@RequestBody @Valid ChangePasswordRequest request, Principal connectedUser) {
             log.info("Received request to change password for employee - connectedUser: {}", connectedUser.getName());
             employeeService.changePassword(request, connectedUser);
         return ResponseEntity.ok().build();

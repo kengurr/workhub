@@ -1,6 +1,5 @@
 package com.workhub.entity;
 
-import com.workhub.dto.Auditable;
 import com.workhub.dto.Technology;
 import jakarta.persistence.*;
 import lombok.*;

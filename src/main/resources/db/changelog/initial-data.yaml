@@ -1,0 +1,100 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: m.vukomanovic
+      changes:
+        - insert:
+            tableName: employees
+            columns:
+              - column:
+                  name: name
+                  value: "John Doe"
+              - column:
+                  name: email
+                  value: "john.doe@example.com"
+              - column:
+                  name: password
+                  value: "$2a$12$sP4hTmTlCMSLiA9haRtIZuxvOEiSvZHw1aEFObRA0Qjd0Z2/Fu0qe"
+                  # decrypted = password123
+              - column:
+                  name: role
+                  value: "ADMIN"
+              - column:
+                  name: created_by
+                  value: "m.vukomanovic"
+              - column:
+                  name: technical_skill
+                  value: "{JAVA,SQL}"
+              - column:
+                  name: created_date
+                  valueDate: "2024-12-03T00:00:00"
+              - column:
+                  name: last_modified_date
+                  valueDate: "2024-12-03T00:00:00"
+
+        - insert:
+            tableName: employees
+            columns:
+              - column:
+                  name: name
+                  value: "Jane Smith"
+              - column:
+                  name: email
+                  value: "jane.smith@example.com"
+              - column:
+                  name: password
+                  value: "$2a$12$q6OGgtgjzFMPQ66uy7/HUe7iUdxrGRqxmDutzu/bgrjD2obVRsbkG"
+                  # decrypted = password456
+              - column:
+                  name: role
+                  value: "MANAGER"
+              - column:
+                  name: technical_skill
+                  value: "{PYTHON,SQL,JAVASCRIPT}"
+              - column:
+                  name: created_by
+                  value: "m.vukomanovic"
+              - column:
+                  name: created_date
+                  valueDate: "2024-12-05T00:00:00"
+              - column:
+                  name: last_modified_date
+                  valueDate: "2024-12-05T00:00:00"
+
+        - insert:
+            tableName: projects
+            columns:
+              - column:
+                  name: name
+                  value: "Project Alpha"
+              - column:
+                  name: technology
+                  value: "{JAVA,JAVASCRIPT}"
+              - column:
+                  name: created_by
+                  value: "m.vukomanovic"
+              - column:
+                  name: created_date
+                  valueDate: "2024-12-05T00:00:00"
+              - column:
+                  name: last_modified_date
+                  valueDate: "2024-12-05T00:00:00"
+
+        - insert:
+            tableName: projects
+            columns:
+              - column:
+                  name: name
+                  value: "Project Beta"
+              - column:
+                  name: technology
+                  value: "{SQL}"
+              - column:
+                  name: created_by
+                  value: "m.vukomanovic"
+              - column:
+                  name: created_date
+                  valueDate: "2024-12-05T00:00:00"
+              - column:
+                  name: last_modified_date
+                  valueDate: "2024-12-05T00:00:00"

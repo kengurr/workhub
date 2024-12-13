@@ -22,48 +22,52 @@ public class ProjectService {
 
     private final TechnicalSkillsValidator technicalSkillsValidator;
 
+    private final ProjectMapper projectMapper;
+
     public ProjectService(ProjectRepository projectRepository,
-                          EmployeeRepository employeeRepository, TechnicalSkillsValidator technicalSkillsValidator) {
+                          EmployeeRepository employeeRepository, TechnicalSkillsValidator technicalSkillsValidator, ProjectMapper projectMapper) {
         this.projectRepository = projectRepository;
         this.employeeRepository = employeeRepository;
         this.technicalSkillsValidator = technicalSkillsValidator;
+        this.projectMapper = projectMapper;
     }
 
     public List<ProjectDto> getProjects() {
-        return projectRepository.findAll().stream()
-                .map(ProjectMapper.INSTANCE::projectToProjectDTO)
+        var projects = projectRepository.findAll();
+        if (projects.isEmpty()) {
+            throw ExceptionUtil.logAndBuildException(WorkhubException.NOT_FOUND);
+        }
+        return projects.stream()
+                .map(projectMapper::projectToProjectDTO)
                 .toList();
     }
 
     public ProjectDto getProject(Long projectId) {
         var project = projectRepository.findById(projectId)
                 .orElseThrow(() -> ExceptionUtil.logAndBuildException(WorkhubException.NOT_FOUND));
-        return ProjectMapper.INSTANCE.projectToProjectDTO(project);
+        return projectMapper.projectToProjectDTO(project);
     }
 
     public void createProject(ProjectDto projectDto) {
-        var project = ProjectMapper.INSTANCE.projectDTOToProject(projectDto);
+        var project = projectMapper.projectDTOToProject(projectDto);
 
         projectRepository.save(project);
     }
 
     public void updateProject(Long projectId, ProjectDto projectDto) {
-        boolean projectExists = projectRepository.existsById(projectId);
-        if(!projectExists) {
-            throw ExceptionUtil.logAndBuildException(WorkhubException.NOT_FOUND);
-        }
-        var updatedProject = ProjectMapper.INSTANCE.projectDTOToProject(projectDto);
-        updatedProject.setId(projectId);
+        var existingProject = projectRepository.findById(projectId)
+                .orElseThrow(() -> ExceptionUtil.logAndBuildException(WorkhubException.NOT_FOUND));
 
-        projectRepository.save(updatedProject);
+        projectMapper.updateProjectFromDTO(projectDto, existingProject);
+
+        projectRepository.save(existingProject);
     }
 
     public void deleteProject(Long projectId) {
-        boolean projectExists = projectRepository.existsById(projectId);
-        if(!projectExists) {
-            throw ExceptionUtil.logAndBuildException(WorkhubException.NOT_FOUND);
-        }
-        projectRepository.deleteById(projectId);
+        var project = projectRepository.findById(projectId)
+                .orElseThrow(() -> ExceptionUtil.logAndBuildException(WorkhubException.NOT_FOUND));
+
+        projectRepository.delete(project);
     }
 
     public void removeProjectFromEmployee(Long projectId, Long employeeId) {

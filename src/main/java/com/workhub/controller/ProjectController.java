@@ -2,6 +2,7 @@ package com.workhub.controller;
 
 import com.workhub.dto.ProjectDto;
 import com.workhub.service.ProjectService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -23,9 +24,7 @@ public class ProjectController {
         log.info("Received request to get list of projects");
         var projects = projectService.getProjects();
 
-        return projects.isEmpty()
-                ? new ResponseEntity<>(HttpStatus.NO_CONTENT)
-                : new ResponseEntity<>(projects, HttpStatus.OK);
+        return new ResponseEntity<>(projects, HttpStatus.OK);
     }
 
     @GetMapping("/{projectId}")
@@ -33,20 +32,18 @@ public class ProjectController {
         log.info("Received request to get project - projectId: {}", projectId);
         var projects = projectService.getProject(projectId);
 
-        return projects == null
-                ? new ResponseEntity<>(HttpStatus.NOT_FOUND)
-                : new ResponseEntity<>(projects, HttpStatus.OK);
+        return new ResponseEntity<>(projects, HttpStatus.OK);
     }
 
     @PostMapping(value = "/")
-    public ResponseEntity<Void> createProject(@RequestBody ProjectDto projectDto) {
+    public ResponseEntity<Void> createProject(@RequestBody @Valid ProjectDto projectDto) {
         log.info("Received request to create project");
         projectService.createProject(projectDto);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     @PutMapping("/{projectId}")
-    public ResponseEntity<Void> updateProject(@RequestBody ProjectDto projectDto,
+    public ResponseEntity<Void> updateProject(@RequestBody @Valid ProjectDto projectDto,
                                               @PathVariable(name = "projectId") Long projectId) {
         log.info("Received request to update project - projectId: {}", projectId);
         projectService.updateProject(projectId, projectDto);
