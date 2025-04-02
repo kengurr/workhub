@@ -1,74 +1,75 @@
 package com.workhub.controller;
 
-import com.workhub.entity.Project;
-import com.workhub.service.ProjectServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.workhub.dto.ProjectDto;
+import com.workhub.service.ProjectService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RestController
-@RequestMapping("/api/project")
+@RequiredArgsConstructor
+@RequestMapping("/api/projects")
 public class ProjectController {
 
-    private final ProjectServiceImpl projectServiceImpl;
+    private final ProjectService projectService;
 
-    @Autowired
-    public ProjectController(ProjectServiceImpl projectServiceImpl) {
-        this.projectServiceImpl = projectServiceImpl;
+    @GetMapping
+    public ResponseEntity<List<ProjectDto>> getProjects() {
+        log.info("Received request to get list of projects");
+        var projects = projectService.getProjects();
+
+        return new ResponseEntity<>(projects, HttpStatus.OK);
     }
 
-    @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = "/")
-    public List<Project> getProjects() {
-        return projectServiceImpl.getProjects();
+    @GetMapping("/{projectId}")
+    public ResponseEntity<ProjectDto> getProject(@PathVariable(name = "projectId") Long projectId) {
+        log.info("Received request to get project - projectId: {}", projectId);
+        var projects = projectService.getProject(projectId);
+
+        return new ResponseEntity<>(projects, HttpStatus.OK);
     }
 
-    @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = "/get/{projectId}")
-    public Project getProject(@PathVariable(name = "projectId") Long projectId) {
-        return projectServiceImpl.getProject(projectId);
-    }
-
-    @PostMapping(value = "/create")
-    public ResponseEntity<?> createProject(@RequestBody Project project) {
-        projectServiceImpl.createProject(project);
+    @PostMapping(value = "/")
+    public ResponseEntity<Void> createProject(@RequestBody @Valid ProjectDto projectDto) {
+        log.info("Received request to create project");
+        projectService.createProject(projectDto);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-    @PostMapping(value = "/update/{projectId}")
-    public ResponseEntity<?> updateProject(@RequestBody Project project,
-                                           @PathVariable(name = "projectId") Long projectId) {
-        projectServiceImpl.updateProject(projectId, project);
-        return new ResponseEntity<>(HttpStatus.CREATED);
-    }
-
-    @DeleteMapping(value = "/delete/{projectId}")
-    public ResponseEntity<?> deleteProject(@PathVariable(name = "projectId") Long projectId) {
-        projectServiceImpl.deleteProject(projectId);
+    @PutMapping("/{projectId}")
+    public ResponseEntity<Void> updateProject(@RequestBody @Valid ProjectDto projectDto,
+                                              @PathVariable(name = "projectId") Long projectId) {
+        log.info("Received request to update project - projectId: {}", projectId);
+        projectService.updateProject(projectId, projectDto);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PostMapping(value = "/create-project-for-employee/{employeeId}")
-    public ResponseEntity<?> createProjectForEmployee(@RequestBody Project project,
-                                                      @PathVariable(name = "employeeId") Long employeeId) {
-        projectServiceImpl.createProjectForEmployee(project, employeeId);
-        return new ResponseEntity<>(HttpStatus.CREATED);
-    }
-
-    @DeleteMapping(value = "/remove-project-for-employee/{projectId}/{employeeId}")
-    public ResponseEntity<?> removeProjectForEmployee(@PathVariable(name = "projectId") Long projectId,
-                                        @PathVariable(name = "employeeId") Long employeeId) {
-        projectServiceImpl.removeProjectForEmployee(projectId, employeeId);
+    @DeleteMapping(value = "/{projectId}")
+    public ResponseEntity<Void> deleteProject(@PathVariable(name = "projectId") Long projectId) {
+        log.info("Received request to delete project - projectId: {}", projectId);
+        projectService.deleteProject(projectId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PutMapping(value = "/assign-project/{projectId}/{employeeId}")
-    public ResponseEntity<?> assignProjectToEmployee(@PathVariable(name = "projectId") Long projectId,
+    @PutMapping(value = "/{projectId}/employees/{employeeId}")
+    public ResponseEntity<Void> assignProjectToEmployee(@PathVariable(name = "projectId") Long projectId,
                                                      @PathVariable(name = "employeeId") Long employeeId) {
-        projectServiceImpl.assignProjectToEmployee(projectId, employeeId);
-        return ResponseEntity.ok("Project assigned to employee successfully");
+        log.info("Received request to assign project to employee");
+        projectService.assignProjectToEmployee(projectId, employeeId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @DeleteMapping(value = "/{projectId}/employees/{employeeId}")
+    public ResponseEntity<Void> removeProjectFromEmployee(@PathVariable(name = "projectId") Long projectId,
+                                                       @PathVariable(name = "employeeId") Long employeeId) {
+        log.info("Received request to remove project for employee");
+        projectService.removeProjectFromEmployee(projectId, employeeId);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

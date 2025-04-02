@@ -1,0 +1,28 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/workhub
+    username: postgres
+    password: admin
+  liquibase:
+    change-log: classpath:db/changelog-master.yaml
+    enabled: true
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  main:
+    allow-bean-definition-overriding: true
+
+server:
+  error:
+    include-message: always
+
+security:
+  jwt:
+    secret-key: 374E635266446A586E3272357538612F413F4428472B4B7920645367566B59558
+    expiration: 86400000
+    refresh-token:
+      expiration: 604800000

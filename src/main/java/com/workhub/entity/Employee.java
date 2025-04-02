@@ -1,39 +1,46 @@
 package com.workhub.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.workhub.dto.Role;
+import com.workhub.dto.Technology;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
+import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @AllArgsConstructor
+@NoArgsConstructor
+@Builder
 @Setter
 @Getter
-@Table
 @Entity
-public class Employee {
+@Table(name = "employees")
+public class Employee extends Auditable implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "employee_id_seq")
     @SequenceGenerator(name = "employee_id_seq", sequenceName = "employee_id_seq",  allocationSize=1)
-    @Column(name = "ID")
     private Long id;
 
     @NonNull
-    @Column(name = "name")
     private String name;
 
-    @NonNull
-    @Column(name = "email", nullable =false, unique=true)
+    @Column(nullable =false, unique=true)
     private String email;
 
-    @Column(name = "technicalSkill")
+    private String password;
+
     @Enumerated(EnumType.STRING)
-    private Set<Technology> technicalSkill;
+    private Role role;
+
+    @Enumerated(EnumType.STRING)
+    private Set<Technology> technicalSkill = new HashSet<>();
 
     @JsonIgnore
     @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.MERGE })
@@ -41,20 +48,39 @@ public class Employee {
             inverseJoinColumns = @JoinColumn(name = "project_id"))
     private Set<Project> projects;
 
-    public Employee() {
+    public Employee(@NonNull String name, @NonNull String email) {
+        this.name = name;
+        this.email = email;
         this.projects = new HashSet<>();
     }
 
-    public void addProject(Project project) {
-        if (!this.projects.contains(project)) {
-            this.projects.add(project);
-            project.getEmployees().add(this);
-        }
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority(role.name()));
     }
 
-    public void removeProject(Project project) {
-        this.projects.remove(project);
-        project.getEmployees().remove(this);
+    @Override
+    public String getUsername() {
+        return email;
     }
 
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
 }

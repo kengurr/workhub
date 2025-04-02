@@ -1,0 +1,176 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: m.vukomanovic
+      changes:
+        - createSequence:
+            sequenceName: employee_id_seq
+            startValue: 1
+            incrementBy: 1
+        - createSequence:
+            sequenceName: project_id_seq
+            startValue: 1
+            incrementBy: 1
+        - createSequence:
+            sequenceName: tokens_seq
+            startValue: 1
+            incrementBy: 1
+
+  - changeSet:
+      id: 2
+      author: m.vukomanovic
+      changes:
+        - createTable:
+            tableName: employees
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                  defaultValueComputed: "nextval('employee_id_seq')"
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: email
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: password
+                  type: VARCHAR(255)
+              - column:
+                  name: role
+                  type: VARCHAR(255)
+              - column:
+                  name: technical_skill
+                  type: VARCHAR[]
+              - column:
+                  name: created_date
+                  type: TIMESTAMP(6)
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: last_modified_date
+                  type: TIMESTAMP(6)
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: created_by
+                  type: VARCHAR(255)
+              - column:
+                  name: last_modified_by
+                  type: VARCHAR(255)
+
+  - changeSet:
+      id: 3
+      author: m.vukomanovic
+      changes:
+        - createTable:
+            tableName: projects
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                  defaultValueComputed: "nextval('project_id_seq')"
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: technology
+                  type: VARCHAR[]
+              - column:
+                  name: created_date
+                  type: TIMESTAMP(6)
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: last_modified_date
+                  type: TIMESTAMP(6)
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: created_by
+                  type: VARCHAR(255)
+              - column:
+                  name: last_modified_by
+                  type: VARCHAR(255)
+
+  - changeSet:
+      id: 4
+      author: m.vukomanovic
+      changes:
+        - createTable:
+            tableName: tokens
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                  defaultValueComputed: "nextval('tokens_seq')"
+              - column:
+                  name: token
+                  type: VARCHAR(255)
+                  constraints:
+                    unique: true
+              - column:
+                  name: token_type
+                  type: VARCHAR(50)
+                  defaultValue: "BEARER"
+              - column:
+                  name: revoked
+                  type: BOOLEAN
+                  defaultValue: false
+              - column:
+                  name: expired
+                  type: BOOLEAN
+                  defaultValue: false
+              - column:
+                  name: employee_id
+                  type: BIGINT
+                  constraints:
+                    nullable: true
+        - addForeignKeyConstraint:
+            constraintName: fk_tokens_employee_id
+            baseTableName: tokens
+            baseColumnNames: employee_id
+            referencedTableName: employees
+            referencedColumnNames: id
+            onDelete: CASCADE
+
+  - changeSet:
+      id: 5
+      author: m.vukomanovic
+      changes:
+        - createTable:
+            tableName: employee_project_mapping
+            columns:
+              - column:
+                  name: employee_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: project_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            constraintName: fk_employee_project_mapping_employee_id
+            baseTableName: employee_project_mapping
+            baseColumnNames: employee_id
+            referencedTableName: employees
+            referencedColumnNames: id
+            onDelete: CASCADE
+        - addForeignKeyConstraint:
+            constraintName: fk_employee_project_mapping_project_id
+            baseTableName: employee_project_mapping
+            baseColumnNames: project_id
+            referencedTableName: projects
+            referencedColumnNames: id
+            onDelete: CASCADE

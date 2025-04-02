@@ -1,85 +1,96 @@
 package com.workhub.controller;
 
-import com.workhub.entity.Employee;
-import com.workhub.service.EmployeeServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.workhub.dto.ChangePasswordRequest;
+import com.workhub.dto.EmployeeDto;
+import com.workhub.service.EmployeeService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
+@Slf4j
 @RestController
-@RequestMapping("/api/employee")
+@RequiredArgsConstructor
+@RequestMapping("/api/employees")
 public class EmployeeController {
 
-    private final EmployeeServiceImpl employeeServiceImpl;
+    private final EmployeeService employeeService;
 
-    @Autowired
-    public EmployeeController(EmployeeServiceImpl employeeServiceImpl) {
-        this.employeeServiceImpl = employeeServiceImpl;
+    @GetMapping
+    public ResponseEntity<List<EmployeeDto>> getEmployees() {
+        log.info("Received request to get list of employees");
+        var employees = employeeService.getEmployees();
+
+        return new ResponseEntity<>(employees, HttpStatus.OK);
     }
 
-    @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = "/")
-    public List<Employee> getEmployees() {
-        return employeeServiceImpl.getEmployees();
+    @GetMapping("/{employeeId}")
+    public ResponseEntity<EmployeeDto> getEmployee(@PathVariable Long employeeId) {
+        log.info("Received request to get employee - employeeId: {}", employeeId);
+        var employee = employeeService.getEmployee(employeeId);
+
+        return new ResponseEntity<>(employee, HttpStatus.OK);
     }
 
-    @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = "/get/{employeeId}")
-    public Employee getEmployee(@PathVariable(name = "employeeId") Long employeeId) {
-        return employeeServiceImpl.getEmployee(employeeId);
+    @PostMapping(value = "/")
+    public ResponseEntity<Void> createEmployee(@RequestBody @Valid EmployeeDto employeeDto) {
+        employeeService.createEmployee(employeeDto);
+            log.info("Received request to create employee");
+            return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
-    @PostMapping(value = "/create")
-    public ResponseEntity<?> createEmployee(@RequestBody Employee employee) {
-        employeeServiceImpl.createEmployee(employee);
-        return new ResponseEntity<>(HttpStatus.CREATED);
-    }
-
-    @PostMapping(value = "/update/{employeeId}")
-    public ResponseEntity<?> updateEmployee(@RequestBody Employee employee,
+    @PutMapping(value = "/{employeeId}")
+    public ResponseEntity<Void> updateEmployee(@RequestBody @Valid EmployeeDto employeeDto,
                                             @PathVariable(name = "employeeId") Long employeeId) {
-        employeeServiceImpl.updateEmployee(employeeId, employee);
-        return new ResponseEntity<>(HttpStatus.CREATED);
-    }
-
-    @DeleteMapping(value = "/delete/{employeeId}")
-    public ResponseEntity<?> deleteEmployee(@PathVariable(name = "employeeId") Long employeeId) {
-        employeeServiceImpl.deleteEmployee(employeeId);
+        employeeService.updateEmployee(employeeId, employeeDto);
+        log.info("Received request to update employee - employeeId: {}", employeeId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PostMapping(value = "/create-employee-for-project/{projectId}")
-    public ResponseEntity<?> createEmployeeForProject(@RequestBody Employee employee,
-                                                   @PathVariable(name = "projectId") Long projectId) {
-        employeeServiceImpl.createEmployeeForProject(employee, projectId);
-        return new ResponseEntity<>(HttpStatus.CREATED);
-    }
-
-    @DeleteMapping(value = "/remove-employee-for-project/{projectId}/{employeeId}")
-    public ResponseEntity<?> removeEmployeeForProject(@PathVariable(name = "projectId") Long projectId,
-                                                       @PathVariable(name = "employeeId") Long employeeId) {
-        employeeServiceImpl.removeEmployeeForProject(projectId, employeeId);
+    @DeleteMapping(value = "/{employeeId}")
+    public ResponseEntity<Void> deleteEmployee(@PathVariable(name = "employeeId") Long employeeId) {
+        log.info("Received request to delete employee - employeeId: {}", employeeId);
+        employeeService.deleteEmployee(employeeId);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PutMapping("/assign-employee/{employeeId}/{projectId}")
-    public ResponseEntity<String> assignEmployeeToProject(
+    @PutMapping(value = "/{employeeId}/projects/{projectId}")
+    public ResponseEntity<Void> assignEmployeeToProject(
             @PathVariable Long employeeId, @PathVariable Long projectId) {
-        employeeServiceImpl.assignEmployeeToProject(employeeId, projectId);
-        return ResponseEntity.ok("Employee assigned to project successfully");
+        log.info("Received request to assign employee to project");
+        employeeService.assignEmployeeToProject(employeeId, projectId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @DeleteMapping(value = "/{employeeId}/projects/{projectId}")
+    public ResponseEntity<Void> removeEmployeeFromProject(@PathVariable(name = "employeeId") Long employeeId,
+                                                       @PathVariable(name = "projectId") Long projectId) {
+        log.info("Received request to remove employee from project");
+        employeeService.removeEmployeeFromProject(employeeId, projectId);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @GetMapping("/search-by-name")
-    public List<Employee> searchEmployeesByName(@RequestParam(name = "name") String name) {
-        return employeeServiceImpl.searchEmployeesByName(name);
+    public List<EmployeeDto> searchEmployeesByName(@RequestParam(name = "name") String name) {
+            log.info("Received request to search for employee by name- name: {}", name);
+            return employeeService.searchEmployeesByName(name);
     }
 
     @GetMapping("/by-project/{projectId}")
-    public List<Employee> getEmployeesByProject(@PathVariable(name = "projectId") Long projectId) {
-        return employeeServiceImpl.getEmployeesByProject(projectId);
+    public List<EmployeeDto> getEmployeesByProject(@PathVariable(name = "projectId") Long projectId) {
+            log.info("Received request to get employee by project - projectId: {}", projectId);
+            return employeeService.getEmployeesByProject(projectId);
     }
 
+    @PatchMapping("/change-password")
+    public ResponseEntity<Void> changePassword(@RequestBody @Valid ChangePasswordRequest request, Principal connectedUser) {
+            log.info("Received request to change password for employee - connectedUser: {}", connectedUser.getName());
+            employeeService.changePassword(request, connectedUser);
+        return ResponseEntity.ok().build();
+    }
 }

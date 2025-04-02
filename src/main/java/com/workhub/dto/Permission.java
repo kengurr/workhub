@@ -1,4 +1,4 @@
-package com.workhub.entity;
+package com.workhub.dto;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

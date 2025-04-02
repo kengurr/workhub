@@ -1,25 +1,101 @@
 package com.workhub.service;
 
-import com.workhub.entity.Project;
+import com.workhub.Utils.TechnicalSkillsValidator;
+import com.workhub.dto.ProjectDto;
+import com.workhub.exception.ExceptionUtil;
+import com.workhub.exception.WorkhubException;
+import com.workhub.mapper.ProjectMapper;
+import com.workhub.repository.EmployeeRepository;
+import com.workhub.repository.ProjectRepository;
+import jakarta.transaction.Transactional;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-public interface ProjectService {
+@Transactional
+@Service
+public class ProjectService {
 
-    List<Project> getProjects();
+    private final ProjectRepository projectRepository;
 
-    Project getProject(Long projectId);
+    private final EmployeeRepository employeeRepository;
 
-    void createProject(Project project);
+    private final TechnicalSkillsValidator technicalSkillsValidator;
 
-    void updateProject(Long projectId, Project project);
+    private final ProjectMapper projectMapper;
 
-    void deleteProject(Long projectId);
+    public ProjectService(ProjectRepository projectRepository,
+                          EmployeeRepository employeeRepository, TechnicalSkillsValidator technicalSkillsValidator, ProjectMapper projectMapper) {
+        this.projectRepository = projectRepository;
+        this.employeeRepository = employeeRepository;
+        this.technicalSkillsValidator = technicalSkillsValidator;
+        this.projectMapper = projectMapper;
+    }
 
-    void createProjectForEmployee(Project project, Long employeeId);
+    public List<ProjectDto> getProjects() {
+        var projects = projectRepository.findAll();
+        if (projects.isEmpty()) {
+            throw ExceptionUtil.logAndBuildException(WorkhubException.NOT_FOUND);
+        }
+        return projects.stream()
+                .map(projectMapper::projectToProjectDTO)
+                .toList();
+    }
 
-    void removeProjectForEmployee(Long projectId, Long employeeId);
+    public ProjectDto getProject(Long projectId) {
+        var project = projectRepository.findById(projectId)
+                .orElseThrow(() -> ExceptionUtil.logAndBuildException(WorkhubException.NOT_FOUND));
+        return projectMapper.projectToProjectDTO(project);
+    }
 
-    void assignProjectToEmployee(Long projectId, Long employeeId);
+    public void createProject(ProjectDto projectDto) {
+        var project = projectMapper.projectDTOToProject(projectDto);
 
+        projectRepository.save(project);
+    }
+
+    public void updateProject(Long projectId, ProjectDto projectDto) {
+        var existingProject = projectRepository.findById(projectId)
+                .orElseThrow(() -> ExceptionUtil.logAndBuildException(WorkhubException.NOT_FOUND));
+
+        projectMapper.updateProjectFromDTO(projectDto, existingProject);
+
+        projectRepository.save(existingProject);
+    }
+
+    public void deleteProject(Long projectId) {
+        var project = projectRepository.findById(projectId)
+                .orElseThrow(() -> ExceptionUtil.logAndBuildException(WorkhubException.NOT_FOUND));
+
+        projectRepository.delete(project);
+    }
+
+    public void removeProjectFromEmployee(Long projectId, Long employeeId) {
+        var project = projectRepository.findById(projectId)
+                .orElseThrow(() -> ExceptionUtil.logAndBuildException(WorkhubException.NOT_FOUND));
+
+        var employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> ExceptionUtil.logAndBuildException(WorkhubException.NOT_FOUND));
+
+        project.getEmployees().remove(employee);
+        employee.getProjects().remove(project);
+
+        projectRepository.save(project);
+    }
+
+    public void assignProjectToEmployee(Long projectId, Long employeeId) {
+        var project = projectRepository.findById(projectId)
+                .orElseThrow(() -> ExceptionUtil.logAndBuildException(WorkhubException.NOT_FOUND));
+
+        var employee = employeeRepository.findById(employeeId)
+                .orElseThrow(() -> ExceptionUtil.logAndBuildException(WorkhubException.NOT_FOUND));
+
+        technicalSkillsValidator.validateTechnicalSkills(employee, project);
+        if (!project.getEmployees().contains(employee)) {
+            project.getEmployees().add(employee);
+            employee.getProjects().add(project);
+        }
+
+        projectRepository.save(project);
+    }
 }
